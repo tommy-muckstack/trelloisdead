@@ -1,0 +1,83 @@
+/* Trello phone layout (<=900px), measured from trello.com at 390px. Shared nav/footer also serve /pricing. */
+.tr-nav .hb{display:none}
+@media(max-width:900px){
+  .tr-nav{height:70px;padding:0 24px 0 32px;justify-content:space-between;box-shadow:none}
+  .tr-nav nav,.tr-nav .li,.tr-nav .cta,.tr-nav .sp{display:none}
+  .tr-nav .hb{display:flex;flex-direction:column;gap:7px;width:26px}.tr-nav .hb i{display:block;height:3px;background:#172b4d;border-radius:1px}
+  .tr-logo small{font-size:10px;margin-left:34px;margin-bottom:3px}.tr-logo>span{font-size:27px;gap:7px;font-weight:800}.tr-logo>span svg{width:24px;height:24px}
+  .tr-ban{height:122px;box-sizing:border-box;padding:11px 16px 0;display:block;font-size:16px;line-height:23px;background:#dde9fd;color:#091e42}
+  /* hero */
+  .tr-hero{height:949px;padding:0;overflow:hidden;position:relative}
+  .tr-hero .l{width:auto;padding:129px 0 0;text-align:center}
+  .tr-hero h1{font-size:32px;line-height:40px;font-weight:700;padding:0 34px;letter-spacing:-.01em}
+  .tr-hero p{font-size:19px;line-height:28.5px;margin:8px 16px 0;font-weight:500;letter-spacing:-.01em}
+  .tr-hero .em{display:block;margin:1px 16px 0}.tr-hero .em input{display:none}.tr-hero .em .bt{display:flex;justify-content:center;height:50px;width:100%;box-sizing:border-box;font-size:16px;font-weight:400;background:#0065ff}
+  .tr-hero .ack{font-size:19px;line-height:28.5px;margin:36px 22px 0}
+  .tr-hero .vid{font-size:16px;justify-content:center;margin:18px 0 0}
+  .tr-hero .r{position:absolute;left:16px;top:564px;width:358px;height:385px;background:#f4f5f7;overflow:hidden}
+  .tr-hero .r .ph{left:105px;top:32px;width:150px;height:360px;border-radius:24px}.tr-hero .r .ph .sc{border-radius:18px;padding:16px 8px}
+  .tr-hero .r .o{display:block;left:-60px;top:250px;width:120px;height:120px}.tr-hero .r .p{display:block;left:-10px;top:260px;width:150px;height:110px}
+  .tr-hero .r .ic.a{right:18px;top:80px;width:36px;height:36px}.tr-hero .r .ic.b{right:8px;top:170px;width:36px;height:36px}.tr-hero .r .ic.c{right:26px;top:230px;width:36px;height:36px}
+  /* Trello 101 */
+  .tr-101{height:763px;padding:0 16px;box-sizing:border-box;text-align:center;overflow:visible}
+  .tr-101 small{font-size:16px;line-height:22px;padding-top:5px}.tr-101 h3{font-size:20px;line-height:29.4px;font-weight:500;max-width:none;margin:7px 10px 0}
+  .tr-101 .dots{display:none}
+  .tabs{display:flex;flex-direction:column;margin-top:57px;height:auto;position:relative}
+  .tabs .img{order:-1;position:relative;left:auto;top:auto;width:100%;height:240px;border-radius:8px}
+  .tabs .img .c1{left:36px;top:40px;width:138px;height:210px;font-size:11px;padding:8px 10px}.tabs .img .c2{left:180px;top:40px;width:200px;height:210px;font-size:11px;padding:8px 10px}
+  .tabs .t{display:none;position:static;width:auto;height:auto}
+  .tabs .t.on{display:block;margin-top:16px;height:156px!important;text-align:left;padding:14px 16px 0 24px;border-left:8px solid #00c2e0;background:#f1f2f4;box-shadow:none;font-size:16px;line-height:24px;box-sizing:border-box;order:2}
+  .tabs .t.on b{font-size:16px;line-height:24px;font-weight:500;margin-bottom:7px}
+  .tr-101:after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#172b4d;box-shadow:16px 0 #172b4d,-16px 0 #172b4d;margin:24px auto 0;position:relative;left:0}
+  /* From message to action */
+  .tr-act{height:1188px;padding:0 16px;margin-bottom:112px;background:#0065ff;overflow:visible}
+  .tr-act h2{font-size:24px;line-height:32px;padding-top:48px;font-weight:700}
+  .tr-act>p{font-size:20px;line-height:29.25px;margin:9px 0 0;max-width:none;font-weight:400}
+  .cd{position:absolute;left:16px;right:16px;display:block!important;padding:24px;height:auto!important;border-radius:8px;box-sizing:border-box}
+  .cd.a{top:264px;height:472px!important}.cd.b{top:768px;height:532px!important}
+  .cd .im{height:168px;margin-bottom:24px}.cd.b .im{order:-1}.cd.b{display:flex!important;flex-direction:column}
+  .cd .tx{padding:0}.cd small{font-size:16px;line-height:21px;font-weight:500;display:block}.cd p{font-size:20px;line-height:29.5px;margin:20px 0 0;font-weight:400}
+  .cd .im i{width:150px;height:110px}.cd .im i+i{left:130px;width:120px}
+  /* Work smarter */
+  .tr-ws{height:auto;padding:0 16px 56px;margin-top:-112px;padding-top:112px;overflow:visible;text-align:center}
+  .tr-ws small,.tr-101 small{font-weight:700}.tr-ws small{font-size:16px;line-height:22px;padding-top:21px}.tr-ws h3{font-size:20px;line-height:29.25px;font-weight:500;max-width:none;margin:7px 2px 0}
+  .g3{display:block;margin-top:59px}.g3>div{height:378px;margin-bottom:32px;text-align:left;padding:24px;background:#f7f8f9}.g3>div:last-child{margin-bottom:0}
+  .g3 i{margin:20px 0 34px 0}.g3 h4{font-size:20px;line-height:27px;font-weight:500}.g3 p{font-size:16px;line-height:23.25px;margin:9px 0 0;font-weight:400}.g3 a{height:50px;font-size:16px;font-weight:400;padding:0 16px;left:24px;bottom:24px;border-radius:3px}
+  .dots2{display:none}
+  .tm{display:block;height:853px;margin:67px 8px 0;box-shadow:0 2px 12px rgba(9,30,66,.18);border-radius:8px;overflow:hidden;position:relative}
+  .tm .a{height:621px;padding:32px;box-sizing:border-box;text-align:left}.tm .a p{font-size:24px;line-height:36px;font-weight:400}
+  .tm .a small{position:absolute;left:32px;bottom:auto;top:402px;font-size:16px;line-height:24px;border-top:1px solid #172b4d;padding-top:16px;width:144px;min-width:144px;white-space:normal}
+  .tm .a u{position:absolute;left:32px;right:auto;bottom:24px;font-size:16px}
+  .tm .b{height:232px;padding:32px;box-sizing:border-box;background:#0747a6;text-align:left}.tm .b h4{font-size:24px;line-height:32px;font-weight:500}.tm .b small{position:absolute;left:32px;bottom:auto;top:177px;font-size:16px;color:rgba(255,255,255,.8)}
+  .tr-ws .cm{font-size:20px;line-height:29px;margin:94px 0 0;padding:0 5px;font-weight:400}
+  .tr-ws .lg{display:grid;grid-template-columns:repeat(3,auto);gap:24px 28px;justify-content:center;margin-top:26px;font-size:24px;font-weight:800}
+  /* closing band */
+  .tr-end{height:283px;padding:0 16px;box-sizing:border-box;background:linear-gradient(135deg,#6e4aa8,#e350a4);color:#fff}
+  .tr-end h2{font-size:24px;line-height:32px;font-weight:500;padding-top:48px}
+  .tr-end .em{display:block;margin:20px 0 0}.tr-end .em input{display:none}.tr-end .em .bt{display:flex;justify-content:center;height:50px;width:100%;box-sizing:border-box;font-size:16px;font-weight:400;background:#0065ff}
+  .tr-end p{font-size:20px;line-height:28.5px;margin:34px 0 0;font-weight:400}.tr-end p a{color:rgba(255,255,255,.8)}
+  /* footer */
+  .tr-foot{height:auto!important;min-height:0;padding:0 32px;background:#172b4d;box-sizing:border-box}
+  .tr-foot .row{display:block;height:auto;margin:0;padding:0;border:0}
+  .tr-foot .row .lg{width:auto;display:flex;justify-content:space-between;align-items:center;padding:0;height:134px;box-sizing:border-box;border-bottom:1px solid rgba(255,255,255,.3);padding-top:4px}
+  .tr-foot .lo{margin:0 8px 0 0;font-size:16px;font-weight:400}
+  .tr-foot .row>div:not(.lg){border-bottom:1px solid rgba(255,255,255,.3);box-sizing:border-box;padding-top:18px}
+  .tr-foot .row>div:nth-child(2){height:82px}.tr-foot .row>div:nth-child(3){height:99px}.tr-foot .row>div:nth-child(4){height:100px}.tr-foot .row>div:nth-child(5){height:98px}
+  .tr-foot .row b{font-size:16px;line-height:21px;font-weight:400}.tr-foot .row span{font-size:12px;line-height:16px;margin-top:6px;max-width:204px}
+  .tr-foot .row .tr-logo>span{font-size:27px;line-height:1;margin:0;max-width:none;display:inline-flex}.tr-foot .row .tr-logo small{font-size:10px;line-height:1;margin:0 0 3px 34px;display:block;max-width:none}
+  .tr-foot .bar{display:block;padding-top:0;font-size:12px}
+  .tr-foot .bar>span{display:block;line-height:16px}.tr-foot .lang{width:auto;font-size:16px;line-height:21px;height:58px;padding-top:18px;box-sizing:border-box}.tr-foot .lang i{margin-left:100px}
+  .tr-foot .bar>span:nth-child(2){margin-top:36px}.tr-foot .bar>span:nth-child(3),.tr-foot .bar>span:nth-child(4){margin-top:18px}
+  .tr-foot .bar>span:nth-child(5){display:block;margin-top:18px;max-width:300px;opacity:.9}
+  .tr-foot .bar .soc{display:flex;gap:30px;margin:0;padding:68px 0 67px}.soc i{width:22px;height:22px;background:transparent;border:2px solid #fff}
+}
+/* pricing top (shares nav): the nav and banner sit on one pale-blue band on the phone */
+@media(max-width:900px){
+  .trp .tr-nav{background:#dde9fd}
+  .trp .trp-ban{height:146px;box-sizing:border-box;padding:11px 16px 0;font-size:16px;line-height:24px;background:#dde9fd;text-align:center;display:block}
+  .trp .trp-ban u{display:block;margin:0}
+  .trp .trp-hd{height:264px!important;padding:0!important;box-sizing:border-box}
+  .trp .trp-hd h1{font-size:32px;line-height:40px;padding-top:80px;letter-spacing:-.01em}
+  .trp .trp-hd p{font-size:20px;line-height:26px;margin:7px 0 0}.trp .trp-hd p+p{margin-top:16px}
+  .trp .trp-plans{margin:0 32px!important}
+}

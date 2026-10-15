@@ -1,10 +1,11 @@
 import Link from "next/link";
 import "./pk.css";
 import "./trhome.css";
+import "./trhome-m.css";
 
 export const TrLogo = ({ c = "#172b4d" }: { c?: string }) => <span className="tr-logo" style={{ color: c }}><small>ATLASSIAN</small><span><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden><rect width="26" height="26" rx="4" fill="#0c66e4" /><rect x="5" y="5" width="6.5" height="14" rx="1.2" fill="#fff" /><rect x="14.500" y="5" width="6.500" height="8.500" rx="1.200" fill="#fff" /></svg>TrelloIsDead</span></span>;
 export function TrNav() {
-  return <header className="tr-nav"><Link href="/" className="lg"><TrLogo /></Link><nav><a>Features <i>⌄</i></a><a>Solutions <i>⌄</i></a><a>Plans <i>⌄</i></a><Link href="/pricing">Pricing</Link><a>Resources <i>⌄</i></a></nav><span className="sp" /><Link href="/login" className="li">Log in</Link><Link href="/login" className="cta">Get TrelloIsDead for free</Link></header>;
+  return <header className="tr-nav"><Link href="/" className="lg"><TrLogo /></Link><nav><a>Features <i>⌄</i></a><a>Solutions <i>⌄</i></a><a>Plans <i>⌄</i></a><Link href="/pricing">Pricing</Link><a>Resources <i>⌄</i></a></nav><span className="sp" /><Link href="/login" className="li">Log in</Link><Link href="/login" className="cta">Get TrelloIsDead for free</Link><span className="hb" aria-hidden><i /><i /><i /></span></header>;
 }
 export function TrFoot({ h = 230 }: { h?: number }) {
   return <footer className="tr-foot" style={{ height: h }}><div className="row"><div className="lg"><TrLogo c="#fff" /><Link href="/login" className="lo">Log In</Link></div>{[["About TrelloIsDead", "What's behind the boards."], ["Jobs", "Learn about open roles on the TrelloIsDead team."], ["Apps", "Download the TrelloIsDead App for your Desktop or Mobile devices."], ["Contact us", "Need anything? Get in touch and we can help."]].map(([a, b]) => <div key={a}><b>{a}</b><span>{b}</span></div>)}</div>
