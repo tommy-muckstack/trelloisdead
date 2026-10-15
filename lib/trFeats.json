@@ -1,0 +1,578 @@
+[
+[
+"UNLIMITED CARDS",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"QUICK CAPTURE",
+"Instantly capture to-dos, notes, and messages, from email, Slack, and Microsoft Teams.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"QUICK CAPTURE POWERED BY AI",
+"Instantly capture to-dos, notes, and messages from email, Slack, and Microsoft Teams using AI.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"INBOX",
+"Gather messages and to-dos in this personal space before organizing them into your boards.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"PLANNER (VIEW-ONLY)",
+"View your scheduled cards on a calendar and synchronize events from your favorite tools.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"PLANNER (FULL ACCESS)",
+"Drag and drop cards on a calendar to block any available time. Sync with more events in your favorite tools.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"AI SUMMARIZATION",
+"Enhance Trello card descriptions and comments effortlessly with AI-driven content generation, grammar correction, and brainstorming.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+138
+],
+[
+"AI ORGANIZATION",
+"Spend less time organizing your board and more time doing. AI features in Trello generate checklists and images, add due dates, merge cards, and schedule focus blocks.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"AI-GENERATED BOARDS",
+"Describe your goal and instantly get a personalized, ready-to-use board to help you get started, complete with lists and cards.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"Learn more",
+138
+],
+[
+"CARD MIRRORING",
+"Keep your to-dos aligned across boards. Mirror a single card to multiple boards to view and edit it from anywhere.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"BUILT-IN AUTOMATION",
+"Powerful no-code automation is built into every Trello board.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"Start automating",
+114
+],
+[
+"ASSIGNEE AND DUE DATES",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"IOS AND ANDROID MOBILE APPS",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"Download mobile apps",
+90
+],
+[
+"DESKTOP APP",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"Download desktop app",
+90
+],
+[
+"UNLIMITED ACTIVITY LOGS",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"TRELLO TEMPLATES",
+"Give your team a blueprint for success with tried-and-true templates from the Trello community.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"Try a template",
+138
+],
+[
+"2-FACTOR AUTHENTICATION",
+"",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"MOBILE DEVICE MANAGEMENT",
+"Enforce security controls on mobile app usage through built-in mobile device management (MDM) support for iOS and Android.",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"UNLIMITED POWER-UPS",
+"Integrate with more than 200+ apps and tools your team depends on like Slack, Google Drive, Salesforce, and more directly into your Trello boards. (Note: Some Power-Ups by our partners require an additional subscription fee.)",
+[
+"✓",
+"✓",
+"✓",
+"✓"
+],
+"Learn more",
+186
+],
+[
+"UNLIMITED WORKSPACE COLLABORATORS",
+"",
+[
+"UP TO 10 COLLABORATORS",
+"✓",
+"✓",
+"✓"
+],
+"",
+77
+],
+[
+"UNLIMITED BOARDS",
+"Create as many Trello boards as your team sees fit; from onboarding new hires, to sprint planning, and every team meeting agenda in between.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+138
+],
+[
+"ADVANCED CHECKLISTS",
+"Break down projects into byte-sized tasks and get granular by assigning members and due dates to individual tasks.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"CUSTOM FIELDS",
+"Bring process and formality to your workflow by structuring information on Trello cards to the task at hand with Custom Fields.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"",
+138
+],
+[
+"COLLAPSIBLE LISTS",
+"Keep your Trello boards tidy and focus on what matters by easily hiding and revealing list details.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"Learn more",
+138
+],
+[
+"LIST COLORS",
+"Brighten up your boards by using list colors to easily spot priorities and keep your to-dos organized and on track.",
+[
+"",
+"✓",
+"✓",
+"✓"
+],
+"Learn more",
+138
+],
+[
+"DASHBOARD VIEW",
+"Trello’s reporting tool lets you access real-time insights and communicate your team’s progress in a visual and meaningful way.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"MAP VIEW",
+"Plan an offsite, scout new office locations, or manage product distribution points by adding locations to your cards and visualizing them geographically on a map.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"TIMELINE VIEW",
+"Plan your project, stay on top of every sprint, and see how all of the moving parts fit together over time with Timeline.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+138
+],
+[
+"TABLE VIEW",
+"Bring a clearer perspective to all the work happening across a single board in a list format where you can create and edit cards in just a few clicks.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"CALENDAR VIEW",
+"Calendar displays start dates, due dates, and advanced checklist items so you can see what lies ahead for your project and stay on top of today’s to-dos.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"WORKSPACE TABLE VIEW",
+"See your projects and tasks across Workspaces and boards in a spreadsheet-style list that can be sorted and filtered to drill down to exactly the cards you need to see.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"WORKSPACE CALENDAR VIEW",
+"Workspace calendar displays items with start dates and due dates across your projects and boards, so you can see what lies ahead for all your teamwork.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"WORKSPACE-LEVEL TEMPLATES",
+"",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"COMMAND RUN ADMINISTRATION",
+"Premium or Enterprise administrators can disable commands on behalf of other users, and perform other command maintenance.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"BOARD COLLECTIONS",
+"Premium and Enterprise teams can use Board Collections to easily group boards together whether by Workspace, department, or major project.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+138
+],
+[
+"OBSERVERS",
+"Observers are a Premium security setting that limit a user’s actions within a board.",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+114
+],
+[
+"DOMAIN-RESTRICTED INVITES",
+"",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"DEACTIVATE MEMBERS",
+"",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"SIMPLE DATA EXPORT",
+"",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"UNLIMITED COMMAND RUNS",
+"",
+[
+"",
+"",
+"✓",
+"✓"
+],
+"",
+66
+],
+[
+"SAML SSO VIA ATLASSIAN GUARD",
+"Atlassian Guard is a separate subscription that your company can enable across all your Atlassian products and starts at $4/month/user.",
+[
+"AVAILABLE",
+"AVAILABLE",
+"AVAILABLE",
+"✓"
+],
+"Learn more",
+162
+],
+[
+"UNLIMITED WORKSPACES",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"POWER-UP ADMINISTRATION",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"ATTACHMENT RESTRICTIONS",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"ORGANIZATION WIDE PERMISSIONS",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"ORGANIZATION VISIBLE BOARDS",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"PUBLIC BOARD MANAGEMENT",
+"",
+[
+"",
+"",
+"",
+"✓"
+],
+"",
+66
+],
+[
+"SUPPORT",
+"",
+[
+"COMMUNITY SUPPORT",
+"LOCAL BUSINESS HOURS",
+"24/5 PREMIUM SUPPORT",
+"24/7 ENTERPRISE ADMIN SUPPORT"
+],
+"Learn more",
+90
+]
+]
