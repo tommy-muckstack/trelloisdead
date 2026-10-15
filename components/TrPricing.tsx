@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TrNav, TrFoot } from "@/components/TrHome";
 import "./trpricing.css";
+import { PlanToggle } from "./PlanToggle";
 
 const PLANS = [
   { n: "FREE", p: "0", s: "Free for up to 10 collaborators per Workspace", d: "Capture your to-dos, get organized, and get sh*t done.", b: "Get started", inc: "INCLUDED IN FREE:", f: ["Unlimited cards", "Up to 10 boards per Workspace", "Quickly capture to-dos from email, Slack, and Teams", "Inbox", "Unlimited Power-Ups per board", "Unlimited storage (10MB/file)", "250 Workspace command runs per month", "Custom backgrounds & stickers", "Unlimited activity log", "Assignee and due dates", "iOS and Android mobile apps", "2-factor authentication"], l: "" },
@@ -22,7 +23,7 @@ export function TrPricing() {
     <TrNav />
     <div className="tr-ban trp-ban">Keep the boards, lists, and cards you love, and let AI do the busywork. Upgrade to unlock our new AI features, starting at <b>$5 a month</b>. <u>Upgrade now</u></div>
     <section className="trp-hd"><h1>Trello your way.</h1><p>Trusted by millions.</p><p>Explore which option is right for you.</p></section>
-    <section className="trp-plans">{PLANS.map(p => <div key={p.n} className={"pl" + (p.hot ? " hot" : "")}><small>{p.n}</small><div className="pr"><sup>$</sup><b>{p.p}</b><u>USD</u></div><em>{p.s}</em><p>{p.d}</p>{p.n === "ENTERPRISE" && <div className="est">Est. cost for <b>50</b> users<i /></div>}<Link href="/login" className="bt2">{p.b}</Link><hr /><h6>{p.inc}</h6><ul>{p.f.map(x => <li key={x}>{x}</li>)}</ul>{p.l && <a className="lm">{p.l}</a>}</div>)}</section>
+    <section className="trp-plans">{PLANS.map(p => <div key={p.n} className={"pl" + (p.hot ? " hot" : "")}><small>{p.n}</small><div className="pr"><sup>$</sup><b>{p.p}</b><u>USD</u></div><em>{p.s}</em><p>{p.d}</p>{p.n === "ENTERPRISE" && <div className="est">Est. cost for <b>50</b> users<i /></div>}<Link href="/login" className="bt2">{p.b}</Link><PlanToggle /><hr /><h6>{p.inc}</h6><ul>{p.f.map(x => <li key={x}>{x}</li>)}</ul>{p.l && <a className="lm">{p.l}</a>}</div>)}</section>
     <section className="trp-cmp"><h2>Compare our plans</h2><div className="se">🔍 Search</div>
       <div className="th"><b>FEATURES</b><b>FREE</b><b>STANDARD</b><b>PREMIUM</b><b>ENTERPRISE</b></div>
       {FEATS.map(([t, d, v]) => <div className="rw" key={t}><div className="ft"><b>{t}</b>{d && <span>{d}</span>}</div>{v.map((x, i) => <div key={i} className={x === "✓" ? "ck" : "tx"}>{x}</div>)}</div>)}
