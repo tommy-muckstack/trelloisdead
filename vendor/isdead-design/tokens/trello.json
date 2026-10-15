@@ -1,0 +1,85 @@
+{
+  "name": "trello",
+  "source": "trello.com homepage look (Atlassian blue #0C66E4, navy text #172B4D, soft purple-blue gradient hero, 3-4px radii), original art, measured 2026-10-14",
+  "font": {
+    "sans": "Manrope",
+    "display": "Manrope",
+    "files": {
+      "Manrope": "trello/Manrope-Variable.woff2"
+    },
+    "mono": "ui-monospace, SFMono-Regular, Menlo, monospace",
+    "note": "Trello uses Charlie Display and Atlassian Sans (proprietary, not shipped). Manrope (OFL) is our lookalike: friendly geometric sans with open forms."
+  },
+  "color": {
+    "bg": "#FFFFFF",
+    "surface": "#FFFFFF",
+    "surfaceAlt": "#F1F2F4",
+    "text": "#172B4D",
+    "textMuted": "#44546F",
+    "textSubtle": "#6B778C",
+    "border": "#DCDFE4",
+    "borderStrong": "#172B4D",
+    "danger": "#C62828",
+    "success": "#1B7F4B",
+    "warning": "#B7791F",
+    "onPrimary": "#FFFFFF",
+    "onAccent": "#FFFFFF",
+    "primary": "#0C66E4",
+    "primaryHover": "#0055CC",
+    "accent": "#0C66E4",
+    "accentHover": "#0055CC",
+    "accentSoft": "#E9F2FF",
+    "focus": "#388BFF",
+    "heroFrom": "#E9F2FF",
+    "heroMid": "#F3F0FF",
+    "heroTo": "#FFECF8"
+  },
+  "radius": {
+    "xs": "2px",
+    "sm": "3px",
+    "md": "6px",
+    "lg": "8px",
+    "xl": "16px",
+    "pill": "9999px"
+  },
+  "space": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px"
+  },
+  "shadow": {
+    "sm": "0 1px 2px rgba(23,43,77,.08)",
+    "md": "0 4px 16px rgba(23,43,77,.10)",
+    "lg": "0 16px 48px rgba(23,43,77,.16)"
+  },
+  "type": {
+    "xs": "12px",
+    "sm": "14px",
+    "md": "16px",
+    "lg": "18px",
+    "xl": "24px",
+    "2xl": "32px",
+    "3xl": "44px",
+    "4xl": "60px",
+    "weightBody": 400,
+    "weightStrong": 600,
+    "weightHeading": 800,
+    "tracking": "-0.02em",
+    "lineHeight": 1.5
+  },
+  "control": {
+    "height": "44px",
+    "heightSm": "32px",
+    "borderWidth": "1px",
+    "buttonRadius": "6px",
+    "inputRadius": "6px",
+    "cardRadius": "12px"
+  }
+}

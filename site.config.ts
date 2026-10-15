@@ -1,0 +1,35 @@
+import type { Site } from "@/lib/site-types";
+const GH = "https://github.com/tommy-muckstack/trelloisdead";
+export const site: Site = {
+  slug: "trelloisdead", name: "TrelloIsDead", replaces: "Trello", theme: "trello",
+  glyph: "M6 5 H10 V19 H6 Z M14 5 H18 V13 H14 Z",
+  nav: [{ label: "Features", id: "boards" }, { label: "Solutions", id: "solutions" }, { label: "Resources", id: "resources" }, { label: "Pricing", id: "pricing" }],
+  cta: "Get started free",
+  hero: { variant: "split", eyebrow: "Free · Open source · Unlimited boards", title: ["Plan it. Drag it.", "Finish it."], subtitle: "Boards, lists and cards that keep every project moving. Drag work from idea to done, add checklists and due dates, and see the whole picture at a glance. No per-seat bill.",
+    primary: { label: "Get started free", href: "/login" }, secondary: { label: "See pricing", href: "/#pricing" }, shot: "board.png", shotAlt: "A kanban board with four lists, labeled cards, due dates and a checklist badge",
+    claim: { prefix: "", placeholder: "Email", cta: "Sign up, it's free" } },
+  audience: "Made for product teams, marketers, students, event planners, side projects and anyone who needs to see what's next",
+  stepsTitle: "Trello 101, the short version",
+  steps: [{ t: "Boards", d: "One board per project. Pick a color and invite your future self." }, { t: "Lists", d: "Columns for each stage of work: ideas, to do, doing, done. Rename and reorder any time." }, { t: "Cards", d: "A card is a task. Add labels, a due date, a description and a checklist." }, { t: "Move it along", d: "Drag cards between lists as work progresses. Everything saves automatically." }],
+  rows: [
+    { id: "boards", k: "Boards", h: "See every project at a glance", p: "Lists sit side by side and scroll sideways. Drag a card to move it, drag a list's header to reorder lists, and pick one of six board backgrounds.", img: "board.png", alt: "A board with four lists and a dozen cards", cta: "Open a board" },
+    { id: "cards", k: "Cards", h: "Everything a task needs, in one place", p: "Open a card to add a description, colored labels, a due date and a checklist with a progress bar. Copy it, archive it, or move it to any list.", img: "card.png", alt: "A card open with labels, due date, description and a half-finished checklist", cta: "Try a card" },
+    { id: "filter", k: "Filters", h: "Find the card in a second", p: "Type to filter cards by title or description, or click a label color to show only that kind of work. Archived cards and lists wait in the archive until you restore them.", img: "filter.png", alt: "A board filtered to show only red-labeled cards", cta: "Filter a board" },
+    { id: "home", k: "Your boards", h: "Start a new board in one click", p: "Create as many boards as you like, choose a background, and your To do, Doing and Done lists are ready to fill.", img: "home.png", alt: "The boards home screen with three boards and a create button", cta: "Make a board" },
+  ],
+  statsTitle: "Real numbers, no fine print",
+  stats: [{ b: "$0", s: "per person, per month, forever" }, { b: "Unlimited", s: "boards, lists, cards and checklists" }, { b: "6 colors", s: "backgrounds and labels" }, { b: "Apache-2.0", s: "fork it, change it, ship it" }],
+  integrations: { title: "Your boards, on every device you sign in on", text: "Your boards save to your account, so the same work shows up on your laptop and your phone. Drag and drop on desktop, tap a card to move it on mobile." },
+  pricing: { title: "What you'd pay to organize tasks elsewhere", vendor: "Trello", asOf: "October 2026", plans: [{ name: "Standard", perSeatMonth: 5, note: "billed yearly, per person" }, { name: "Premium", perSeatMonth: 10, note: "billed yearly, per person" }, { name: "Enterprise", perSeatMonth: 17.5, note: "billed yearly, per person" }], seats: 10,
+    footnote: "Trello also has a free plan with limits on boards per workspace and automation runs. Our version doesn't have shared boards, Power-Ups, automation or calendar views yet, so compare features, not just price.", featuresTitle: "Every feature, no plan gates",
+    features: [{ name: "Unlimited boards", plan: "Standard" }, { name: "Checklists with progress", plan: "Free" }, { name: "Due dates and overdue badges", plan: "Free" }, { name: "Six board backgrounds", plan: "Free / Standard" }, { name: "Filter by text and label", plan: "Free" }, { name: "Archive and restore cards", plan: "Free" }] },
+  finalCta: { title: "Get it done. Skip the seat fees.", sub: "Sign up and your first board is ready in seconds." },
+  footer: [
+    { title: "Product", links: [{ label: "Boards", href: "/#boards" }, { label: "Cards", href: "/#cards" }, { label: "Filters", href: "/#filter" }, { label: "Pricing", href: "/#pricing" }] },
+    { title: "Get started", links: [{ label: "Log in", href: "/login" }, { label: "Try the demo account", href: "/login" }, { label: "Price comparison", href: "/#pricing" }] },
+    { title: "Open source", links: [{ label: "GitHub", href: GH }, { label: "Apache-2.0 license", href: GH + "/blob/main/LICENSE" }] },
+    { title: "More IsDead apps", links: [{ label: "CalendlyIsDead", href: "/calendlyisdead" }, { label: "LinktreeIsDead", href: "/linktreeisdead" }, { label: "BitlyIsDead", href: "/bitlyisdead" }, { label: "WeTransferIsDead", href: "/wetransferisdead" }, { label: "LoomIsDead", href: "/loomisdead" }] },
+  ],
+  trademark: "TrelloIsDead is an independent open-source project. It is not affiliated with, endorsed by or sponsored by Atlassian or Trello. Trello is a trademark of its owner.",
+  repo: GH,
+};
