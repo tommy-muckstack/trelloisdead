@@ -55,3 +55,5 @@
 .md-tools button{width:30px;height:28px;border:0;background:transparent;border-radius:3px;cursor:pointer;color:var(--subtle);display:inline-flex;align-items:center;justify-content:center}.md-tools button:hover{background:var(--hover);color:var(--text)}
 @media (max-width:760px){.b-avatars{display:none}.b-filterpop{width:calc(100vw - 24px);position:fixed;left:12px;right:12px;top:104px}.b-menu{width:100vw;height:calc(100vh - 104px)}}
 @media print{.tr-hd,.b-bar,.b-add,.b-list--add,.b-list--new,.tr-toasts{display:none!important}.b-root{height:auto!important;background:#fff!important}.b-canvas{flex-wrap:wrap;overflow:visible}.b-list{break-inside:avoid;box-shadow:none;border:1px solid #ccc}}
+.b-watch{color:var(--subtle);display:inline-flex;padding:0 2px}.b-lm .tr-pop{left:0;top:36px}
+@media (max-width:760px){.b-lm .tr-pop{position:fixed;left:12px;right:12px;top:110px;width:auto}}

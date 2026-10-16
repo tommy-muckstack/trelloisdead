@@ -32,7 +32,7 @@ describe("cards", () => {
 });
 describe("lists", () => {
   it("copies, sorts, archives all and moves all cards", () => { let b = act(base(), { t: "list.copy", listId: "l_a", newId: "l_a2", title: "A copy" }); expect(b.lists.map(l => l.title)).toEqual(["A", "A copy", "B", "C"]); expect(b.lists[1]!.cards).toHaveLength(3);
-    b = act(b, { t: "list.sort", listId: "l_a", by: "title" }); expect(titles(b, 0)).toEqual(["a1", "a2", "a3"]);
+    b = act(b, { t: "list.sort", listId: "l_a", sortBy: "title" }); expect(titles(b, 0)).toEqual(["a1", "a2", "a3"]);
     b = act(b, { t: "list.moveCards", listId: "l_a", toListId: "l_c" }); expect(titles(b, 3)).toEqual(["a1", "a2", "a3"]); expect(titles(b, 0)).toEqual([]);
     b = act(b, { t: "list.archiveCards", listId: "l_c" }); expect(b.lists[3]!.cards.every(c => c.archived)).toBe(true); });
   it("reorders lists", () => { expect(act(base(), { t: "list.move", listId: "l_c", index: 0 }).lists.map(l => l.title)).toEqual(["C", "A", "B"]); });
@@ -58,6 +58,7 @@ describe("permissions and validation", () => {
     b = act(b, { t: "member.add", person: bob, role: "observer" }); expect(allowed(b, a({ t: "card.add", listId: "l_a", cardId: "c9", title: "x", index: 0 }, bob))).toBe(false); expect(allowed(b, a({ t: "card.watch", cardId: "c_a1", on: true }, bob))).toBe(true);
     b = act(b, { t: "member.role", userId: bob.id, role: "normal" }); expect(allowed(b, a({ t: "board.patch", patch: { visibility: "public" } }, bob))).toBe(false); expect(allowed(b, a({ t: "board.patch", patch: { title: "x" } }, bob))).toBe(true); });
   it("keeps at least one admin", () => { const b = base(); expect(act(b, { t: "member.role", userId: me.id, role: "normal" })).toBe(b); expect(act(b, { t: "member.remove", userId: me.id })).toBe(b); });
+  it("action bodies never use the stamped field names", () => { for (const t of ["list.sort"]) expect(JSON.stringify(normalizeAction({ t, listId: "l_aa", sortBy: "title" }))).not.toContain('"by"'); });
   it("normalizes untrusted input", () => { expect(normalizeAction(null)).toBeNull(); expect(normalizeAction({ t: "card.add", listId: "../x", cardId: "c1", title: "t" })).toBeNull(); expect(normalizeAction({ t: "nope" })).toBeNull();
     expect(normalizeAction({ t: "attachment.add", cardId: "c1", attachment: { id: "att1", kind: "link", url: "javascript:alert(1)" } })).toBeNull();
     expect(normalizeAction({ t: "card.patch", cardId: "c_1", patch: { due: "garbage", title: "x".repeat(9999), evil: 1 } })).toEqual({ t: "card.patch", cardId: "c_1", patch: { title: "x".repeat(512) } });

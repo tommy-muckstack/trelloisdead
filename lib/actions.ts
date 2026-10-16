@@ -7,6 +7,7 @@ import {
   type Role, type Rule, type RuleStep, type SortBy, type BoardSettings, type Attachment, type Visibility,
 } from "./model";
 
+// NB: `by`, `byName`, `at` and `id` are stamped on every action and stripped before sending, so action bodies must not use those field names.
 type Base = { id: string; at: string; by: string; byName: string; rule?: boolean };
 export type CardPatch = Partial<Pick<Card, "title" | "desc" | "start" | "due" | "dueComplete" | "reminder" | "cover" | "location" | "archived" | "isTemplate">>;
 export type BoardPatch = Partial<Pick<Board, "title" | "desc" | "bg" | "visibility" | "workspaceId" | "closed" | "isTemplate">> & { settings?: Partial<BoardSettings> };
@@ -15,7 +16,7 @@ export type ActionBody =
   | { t: "label.create"; labelId: string; name: string; color: string } | { t: "label.update"; labelId: string; name: string; color: string } | { t: "label.delete"; labelId: string }
   | { t: "list.add"; listId: string; title: string; index: number } | { t: "list.patch"; listId: string; title?: string; archived?: boolean; limit?: number | null }
   | { t: "list.move"; listId: string; index: number } | { t: "list.copy"; listId: string; newId: string; title: string }
-  | { t: "list.sort"; listId: string; by: SortBy } | { t: "list.archiveCards"; listId: string } | { t: "list.moveCards"; listId: string; toListId: string } | { t: "list.watch"; listId: string; on: boolean }
+  | { t: "list.sort"; listId: string; sortBy: SortBy } | { t: "list.archiveCards"; listId: string } | { t: "list.moveCards"; listId: string; toListId: string } | { t: "list.watch"; listId: string; on: boolean }
   | { t: "list.delete"; listId: string }
   | { t: "card.add"; listId: string; cardId: string; title: string; index: number }
   | { t: "card.patch"; cardId: string; patch: CardPatch } | { t: "card.move"; cardId: string; listId: string; index: number }
@@ -112,7 +113,7 @@ function applyBase(b: Board, a: Action): Board {
       const lists = [...b.lists]; lists.splice(b.lists.indexOf(src) + 1, 0, { ...mkList(a.newId, a.title || src.title, cards), limit: src.limit });
       return log({ ...b, lists, seq }, a, null, `copied list ${q(src.title)}`);
     }
-    case "list.sort": return b.lists.some(l => l.id === a.listId) ? editList(b, a.listId, l => ({ ...l, cards: sortCards(l.cards, a.by) })) : b;
+    case "list.sort": return b.lists.some(l => l.id === a.listId) ? editList(b, a.listId, l => ({ ...l, cards: sortCards(l.cards, a.sortBy) })) : b;
     case "list.archiveCards": {
       const l = b.lists.find(x => x.id === a.listId); if (!l || !l.cards.some(c => !c.archived)) return b;
       return log(editList(b, a.listId, x => ({ ...x, cards: x.cards.map(c => (c.archived ? c : { ...c, archived: true, updatedAt: a.at })) })), a, null, `archived all cards in list ${q(l.title)}`);
@@ -314,7 +315,7 @@ export function stepAction(b: Board, s: RuleStep, cardId: string | null, a: Base
     case "join": return cardId && memberOf(b, a.by) ? { ...base, t: "card.member", cardId, userId: a.by, on: true } : null;
     case "clearMembers": return cardId ? { ...base, t: "card.members", cardId, ids: [] } : null;
     case "checklist": return cardId ? { ...base, t: "checklist.add", cardId, checklistId: id + "k", title: s.title } : null;
-    case "sortList": return { ...base, t: "list.sort", listId: s.listId, by: s.by };
+    case "sortList": return { ...base, t: "list.sort", listId: s.listId, sortBy: s.by };
     case "archiveList": return { ...base, t: "list.archiveCards", listId: s.listId };
     case "moveAll": return { ...base, t: "list.moveCards", listId: s.from, toListId: s.to };
   }
@@ -403,7 +404,7 @@ export function normalizeAction(raw: any): ActionBody | null {
     case "list.delete": { const listId = id("listId"); return listId ? { t: "list.delete", listId } : null; }
     case "list.move": { const listId = id("listId"); return listId ? { t: "list.move", listId, index: num(r.index) ?? 0 } : null; }
     case "list.copy": { const listId = id("listId"), newId = id("newId"); return listId && newId ? { t: "list.copy", listId, newId, title: clip(r.title, LIMITS.title) } : null; }
-    case "list.sort": { const listId = id("listId"); return listId && SORTS.includes(r.by) ? { t: "list.sort", listId, by: r.by } : null; }
+    case "list.sort": { const listId = id("listId"); return listId && SORTS.includes(r.sortBy) ? { t: "list.sort", listId, sortBy: r.sortBy } : null; }
     case "list.archiveCards": { const listId = id("listId"); return listId ? { t: "list.archiveCards", listId } : null; }
     case "list.moveCards": { const listId = id("listId"), toListId = id("toListId"); return listId && toListId ? { t: "list.moveCards", listId, toListId } : null; }
     case "list.watch": { const listId = id("listId"); return listId ? { t: "list.watch", listId, on: !!r.on } : null; }
