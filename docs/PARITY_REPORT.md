@@ -37,5 +37,21 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 | 27 | Keyboard shortcuts | fixed | fix/account-chrome | ? opens the shortcuts panel (also the ? button in the header). Implemented: ? / B F X Q W, arrows and J/K to select, Enter, N, E, T, Space, 1–9, C (with Undo toast), S, V, , and . (also < >), R (repeat), Z and Shift+Z (undo/redo), Esc, Ctrl/⌘+Enter. Can be turned off in Settings. |
 | 28 | Persistence | fixed | fix/account-chrome | Re-verified on the new model: every edit is saved server-side as it happens ("Saving… / Saved"), survives reloads, reaches collaborators within ~4 s without a reload, and concurrent edits merge instead of overwriting. |
 | 29 | Sign out / in | fixed | fix/account-chrome | Log out from the account menu returns to the logged-out site; signing back in shows the same boards and cards (verified with the demo account; Firebase sign-in uses the same session path). |
-| 30 | Console errors | open | | |
-| 31 | Mobile 390px | open | | |
+| 30 | Console errors | fixed | fix/hygiene | Every e2e script fails on any console error or page error. scripts/e2e-hygiene.mjs visits all 31 marketing and app pages (every view, card deep link, account pages, 404) at desktop and 390px with zero console errors. Fixed along the way: a hydration mismatch on invite links, client-module constants used by server pages, and a Leaflet stylesheet import. |
+| 31 | Mobile 390px | fixed | fix/hygiene | Tested at 390×844: no horizontal page scroll on any of the 31 pages; the header collapses its menus into More and hides the wordmark; filter, board menu, list menu, card back, dates, notifications, account and More menus all fit the screen (header popovers become full-width sheets). Lists scroll sideways inside the board, like Trello. Exception: drag and drop is mouse-only; on touch screens cards move with the card's Move action and lists with the list menu. |
+
+
+## Exceptions and decisions
+
+- **#8 Signed-out /app** keeps the IsDead no-login-gate rule: visitors get their own guest workspace (not a shared demo), with a clear sign-up button. Owner decision 2026-10-15.
+- **No outgoing email** for invitations or notifications (#23, #25): the project has no email service. Invite links and in-app notifications cover it. Firebase still sends verification and password-reset emails.
+- **#5 Verification** is required for new sign-ups before the first session; accounts created before this change that never verified can still log in (enforcing it would lock them out). Needs an owner decision if stricter behaviour is wanted.
+- **#21 Power-Ups**: five built-in Power-Ups; no third-party integrations.
+- **#31 Touch drag and drop**: not supported; Move actions cover touch screens.
+- **Live updates** poll every 4 seconds rather than streaming.
+
+## Not covered by automated checks
+
+- Delivery of Firebase verification and reset emails (requests were verified on a Vercel preview; inbox delivery was not, because the test address was a throwaway @example.com).
+- Google sign-in (needs a real Google account in a browser).
+- Dragging files from the desktop onto a card (Playwright can't drag OS files; the file picker path is tested).
