@@ -72,6 +72,53 @@ export const putDoc = <T>(col: string, id: string, doc: T): Promise<void> => (us
 export const listDocs = <T>(col: string): Promise<T[]> => (useFirestore() ? fsList<T>(col) : fileList<T>(col));
 export const delDoc = (col: string, id: string): Promise<void> => (useFirestore() ? fsDel(col, id) : fileDel(col, id));
 
+// ---- read-modify-write (transactional on Firestore, serialised per doc in-process for files) ----
+const locks = new Map<string, Promise<unknown>>();
+/** Atomically update one doc. `f` gets the current value (or null) and returns the new value, or undefined to leave it as is. */
+export async function mutateDoc<T>(col: string, id: string, f: (cur: T | null) => T | undefined): Promise<T | null> {
+  if (!useFirestore()) {
+    const key = col + "/" + id; const prev = locks.get(key) ?? Promise.resolve();
+    const run = prev.catch(() => {}).then(async () => { const cur = await fileGet<T>(col, id); const next = f(cur); if (next === undefined) return cur; await filePut(col, id, next); return next; });
+    locks.set(key, run); try { return await run; } finally { if (locks.get(key) === run) locks.delete(key); }
+  }
+  const d = await db(); const c = d.collection(colName(col)); const ref = c.doc(safe(id));
+  return d.runTransaction(async tx => {
+    const snap = await tx.get(ref); let cur: T | null = null; let oldN = 1;
+    if (snap.exists) {
+      const m = snap.data() as { d?: string; n?: number }; oldN = m.n ?? 1; let json = m.d ?? "";
+      for (let i = 1; i < oldN; i++) json += ((await tx.get(c.doc(`${safe(id)}~c${i}`))).data() as { d?: string } | undefined)?.d ?? "";
+      try { cur = JSON.parse(json) as T; } catch { cur = null; }
+    }
+    const next = f(cur); if (next === undefined) return cur;
+    const json = JSON.stringify(next); const n = Math.max(1, Math.ceil(json.length / CHUNK));
+    for (let i = 1; i < n; i++) tx.set(c.doc(`${safe(id)}~c${i}`), { d: json.slice(i * CHUNK, (i + 1) * CHUNK), part: true });
+    for (let i = n; i < oldN; i++) tx.delete(c.doc(`${safe(id)}~c${i}`));
+    tx.set(ref, { d: json.slice(0, CHUNK), n, main: true, updatedAt: Date.now() });
+    return next;
+  });
+}
+
+// ---- binary blobs (attachments, background and avatar uploads). Vercel request bodies cap at 4.5 MB, so uploads are limited to 4 MB.
+// Firestore: docs "<id>~b<i>" of up to 900 KB each in collection "<app>__blob_<col>"; dev: files under <data dir>/blobs/<col>/<id>.
+const BCHUNK = 900_000;
+export async function putBlob(col: string, id: string, bytes: Uint8Array): Promise<void> {
+  if (!useFirestore()) { const d = path.join(dir(), "blobs", safe(col)); await fs.mkdir(d, { recursive: true }); await fs.writeFile(path.join(d, safe(id)), bytes); return; }
+  const c = (await db()).collection(colName("blob_" + col)); const n = Math.max(1, Math.ceil(bytes.length / BCHUNK));
+  for (let i = 0; i < n; i++) await c.doc(`${safe(id)}~b${i}`).set({ b: Buffer.from(bytes.subarray(i * BCHUNK, (i + 1) * BCHUNK)), i, n, size: bytes.length });
+}
+export async function getBlob(col: string, id: string): Promise<Buffer | null> {
+  if (!useFirestore()) { try { return await fs.readFile(path.join(dir(), "blobs", safe(col), safe(id))); } catch { return null; } }
+  const c = (await db()).collection(colName("blob_" + col)); const first = await c.doc(`${safe(id)}~b0`).get(); if (!first.exists) return null;
+  const n = (first.data() as { n: number }).n; const parts: Buffer[] = [Buffer.from((first.data() as { b: Buffer }).b)];
+  for (let i = 1; i < n; i++) { const s = await c.doc(`${safe(id)}~b${i}`).get(); if (!s.exists) return null; parts.push(Buffer.from((s.data() as { b: Buffer }).b)); }
+  return Buffer.concat(parts);
+}
+export async function delBlob(col: string, id: string): Promise<void> {
+  if (!useFirestore()) { try { await fs.unlink(path.join(dir(), "blobs", safe(col), safe(id))); } catch { /* ok */ } return; }
+  const c = (await db()).collection(colName("blob_" + col)); const first = await c.doc(`${safe(id)}~b0`).get(); const n = first.exists ? (first.data() as { n: number }).n : 0;
+  for (let i = 0; i < n; i++) await c.doc(`${safe(id)}~b${i}`).delete();
+}
+
 /** After a guest signs in: move every per-user doc (docs keyed by the user id) from the guest id to the account, once. */
 export async function adoptGuestDocs(fromId: string, toId: string): Promise<number> {
   if (!fromId || !toId || fromId === toId) return 0;
