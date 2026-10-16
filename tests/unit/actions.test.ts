@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { applyAction, normalizeAction, allowed, inverse, sortCards, type Action, type ActionBody } from "@/lib/actions";
-import { mkBoard, mkList, mkCard, findCard, progress, type Board, type Person } from "@/lib/model";
+import { mkBoard, mkList, mkCard, findCard, progress, fmtText, dateToken, type Board, type Person } from "@/lib/model";
 import { matches, EMPTY_FILTER, keywordMatch } from "@/lib/filter";
 import { renderMarkdown, mentionsIn } from "@/lib/markdown";
 import { TEMPLATES, buildFromTemplate, copyBoard } from "@/lib/templates";
@@ -89,4 +89,8 @@ describe("templates", () => {
   it("every template builds a valid board with unique ids", () => { for (const t of TEMPLATES) { const b = buildFromTemplate(t, { id: "b" + t.id.replace(/-/g, ""), workspaceId: "w", owner: me }); const ids = [b.id, ...b.lists.map(l => l.id), ...b.lists.flatMap(l => l.cards.flatMap(c => [c.id, ...c.checklists.flatMap(k => [k.id, ...k.items.map(i => i.id)])]))]; expect(new Set(ids).size).toBe(ids.length); expect(b.lists.length).toBeGreaterThan(2); expect(b.lists.flatMap(l => l.cards).every(c => c.labels.every(x => b.labels.some(l => l.id === x)))).toBe(true); } });
   it("copies a board with remapped labels", () => { let b = base(); b = act(b, { t: "card.label", cardId: "c_a1", labelId: b.labels[2]!.id, on: true }); const c = copyBoard(b, { id: "bnew", title: "Copy", workspaceId: "w", owner: bob, keepCards: true }); expect(c.members.map(m => m.id)).toEqual([bob.id]); expect(c.lists[0]!.cards[0]!.labels).toEqual([c.labels[2]!.id]); });
   it("sorts by due date with undated last", () => { const at = "2026-01-01T00:00:00Z"; const s = sortCards([mkCard("a", 1, "a", at), mkCard("b", 2, "b", at, { due: "2026-02-01T00:00:00Z" })], "due"); expect(s.map(x => x.id)).toEqual(["b", "a"]); });
+});
+describe("date tokens", () => {
+  it("activity stores due dates as tokens formatted for the reader", () => { const due = "2026-10-20T15:30:00.000Z"; const b = act(base(), { t: "card.patch", cardId: "c_a1", patch: { due } });
+    expect(b.activity[0]!.ctext).toBe(`set this card to be due ${dateToken(due)}`); expect(fmtText(b.activity[0]!.ctext)).not.toContain("{{"); expect(fmtText("plain")).toBe("plain"); });
 });

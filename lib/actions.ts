@@ -2,7 +2,7 @@
 // checks permissions (allowed) and applies the same function to the stored board. Automation rules run inside
 // applyAction, so a rule fires exactly once (on the server copy) and the client sees the same result.
 import {
-  LIMITS, LABEL_COLORS, POWERUPS, REMINDERS, clip, findCard, isBg, isId, memberOf, mkCard, mkList, progress, fmtDate,
+  LIMITS, LABEL_COLORS, POWERUPS, REMINDERS, clip, findCard, isBg, isId, memberOf, mkCard, mkList, progress, dateToken,
   type Activity, type Board, type ButtonDef, type Card, type CheckItem, type Checklist, type Cover, type CustomField, type FieldValue, type List, type Person, type Place,
   type Role, type Rule, type RuleStep, type SortBy, type BoardSettings, type Attachment, type Visibility,
 } from "./model";
@@ -147,7 +147,7 @@ function applyBase(b: Board, a: Action): Board {
       let nb = editCard(b, a.cardId, () => touch(next, a.at));
       if (next.title !== c.title) nb = log(nb, a, c.id, `renamed ${q(c.title)} to ${q(next.title)}`, `renamed this card from ${q(c.title)}`);
       if (next.archived !== c.archived) nb = log(nb, a, c.id, next.archived ? `archived ${q(next.title)}` : `sent ${q(next.title)} to the board`, next.archived ? "archived this card" : "sent this card to the board");
-      if (next.due !== c.due) nb = next.due ? log(nb, a, c.id, `set ${q(next.title)} to be due ${fmtDate(next.due, { time: true })}`, `set this card to be due ${fmtDate(next.due, { time: true })}`) : log(nb, a, c.id, `removed the due date from ${q(next.title)}`, "removed the due date from this card");
+      if (next.due !== c.due) nb = next.due ? log(nb, a, c.id, `set ${q(next.title)} to be due ${dateToken(next.due)}`, `set this card to be due ${dateToken(next.due)}`) : log(nb, a, c.id, `removed the due date from ${q(next.title)}`, "removed the due date from this card");
       if (next.dueComplete !== c.dueComplete) nb = log(nb, a, c.id, `marked ${q(next.title)} as ${next.dueComplete ? "complete" : "incomplete"}`, `marked this card as ${next.dueComplete ? "complete" : "incomplete"}`);
       if (next.isTemplate !== c.isTemplate) nb = log(nb, a, c.id, `${next.isTemplate ? "made" : "unmade"} ${q(next.title)} a template`, next.isTemplate ? "made this card a template" : "turned this template back into a card");
       if (next.location && next.location !== c.location) nb = log(nb, a, c.id, `added a location to ${q(next.title)}`, `set the location to ${next.location.name}`);
