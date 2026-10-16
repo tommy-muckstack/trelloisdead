@@ -57,3 +57,14 @@
 @media print{.tr-hd,.b-bar,.b-add,.b-list--add,.b-list--new,.tr-toasts{display:none!important}.b-root{height:auto!important;background:#fff!important}.b-canvas{flex-wrap:wrap;overflow:visible}.b-list{break-inside:avoid;box-shadow:none;border:1px solid #ccc}}
 .b-watch{color:var(--subtle);display:inline-flex;padding:0 2px}.b-lm .tr-pop{left:0;top:36px}
 @media (max-width:760px){.b-lm .tr-pop{position:fixed;left:12px;right:12px;top:110px;width:auto}}
+/* card front: covers, collapsible labels, complete toggle, badges, aging */
+.b-card__img{height:150px;background:var(--sunken) center/cover no-repeat;border-radius:8px 8px 0 0}.b-card__cover{height:32px;border-radius:8px 8px 0 0}
+.b-card.full{min-height:96px;background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}.b-card.full .b-card__t{font-weight:600;font-size:16px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.b-card__fullbg{position:absolute;inset:0;z-index:0}.b-card.full .b-card__body{position:relative;z-index:1}.b-card.full .b-card__fullbg+.b-card__body .b-card__t{text-shadow:none;color:inherit}
+.b-card__lbls button{border:0;cursor:pointer;font-family:inherit}.b-card__lbls.collapsed .b-label{min-width:40px;max-width:40px;height:8px;padding:0}
+.b-card__trow{display:flex;align-items:flex-start;gap:6px}.b-done{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--subtle);background:transparent;flex:none;margin-top:2px;cursor:pointer;padding:0;color:#fff;font-size:10px;line-height:1;display:none;align-items:center;justify-content:center}
+.b-card:hover .b-done,.b-done.on,.b-done:focus-visible{display:flex}.b-done.on{background:var(--success);border-color:var(--success)}.b-done:hover{border-color:var(--success)}
+.b-card.complete .b-card__t{color:var(--subtle)}.b-num{color:var(--subtlest);font-weight:600}
+.b-badge.tpl{background:var(--sel-bg);color:var(--sel)}.b-badge.voted{color:var(--sel)}.b-badge.field{background:var(--hover);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;line-height:24px}
+.b-members{margin-left:auto;display:flex;gap:2px;align-items:center}
+.b-card.age1{opacity:.85}.b-card.age2{opacity:.65}.b-card.age3{opacity:.45}.b-card.age1:hover,.b-card.age2:hover,.b-card.age3:hover{opacity:1}

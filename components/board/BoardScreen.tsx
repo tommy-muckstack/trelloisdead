@@ -13,7 +13,7 @@ import type { MenuView } from "@/components/board/BoardMenu";
 import { CardTile } from "@/components/board/CardTile";
 import { ListMenu } from "@/components/board/ListMenu";
 import { Eye } from "lucide-react";
-import { CardModal } from "@/components/board/CardModal";
+import { CardModal } from "@/components/card/CardModal";
 import "./board.css";
 
 export function BoardScreen({ initial, role, via }: { initial: Board; role: Role | null; via: "member" | "workspace" | "public" }) {
@@ -31,7 +31,7 @@ function BoardBody() {
     <BoardHeader filter={filter} setFilter={setFilter} filterOpen={filterOpen} setFilterOpen={setFilterOpen} menu={menu} setMenu={setMenu} />
     {board.closed && <div className="b-closed">This board is closed. {editable || board.members.find(m => m.id === app.user.id)?.role === "admin" ? <button className="tr-btn sm" onClick={() => dispatch({ t: "board.patch", patch: { closed: false } })}>Reopen board</button> : "Ask a board admin to reopen it."}</div>}
     <Lists lists={lists} filter={filter} onOpen={setOpen} />
-    {openCard && <CardModal cardId={openCard} onClose={() => setOpen(null)} />}
+    {openCard && <CardModal key={openCard} cardId={openCard} onClose={() => setOpen(null)} onOpen={setOpen} />}
     {isFiltering(filter) && <div className="b-filtering">Filtering is on. <button onClick={() => setFilter(EMPTY_FILTER)}>Clear</button></div>}
   </div>;
 }
