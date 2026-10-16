@@ -164,3 +164,6 @@ export const ago = (iso: string, at = Date.now()) => {
 export const ageLevel = (c: Card, at = Date.now()) => { const d = (at - new Date(c.updatedAt).getTime()) / 864e5; return d >= 28 ? 3 : d >= 14 ? 2 : d >= 7 ? 1 : 0; };
 export const canEdit = (b: Board, userId: string | null) => { const m = userId ? memberOf(b, userId) : null; return !!m && m.role !== "observer"; };
 export const isAdmin = (b: Board, userId: string | null) => { const m = userId ? memberOf(b, userId) : null; return !!m && m.role === "admin"; };
+/** Dates inside stored text (activity, notifications) are written as {{d:<ISO>}} on the server and formatted in the reader's time zone. */
+export const dateToken = (iso: string) => `{{d:${iso}}}`;
+export const fmtText = (text: string) => text.replace(/\{\{d:([^}]+)\}\}/g, (_, iso: string) => (isNaN(Date.parse(iso)) ? iso : fmtDate(iso, { time: iso.length > 10 })));

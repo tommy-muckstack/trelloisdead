@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Info, Activity as ActivityIcon, Archive, Settings, Image as ImageIcon, Tag, Copy, Download, LayoutTemplate, X, ChevronLeft, LogOut, Pencil, Trash2, Undo2 } from "lucide-react";
-import { LABEL_COLORS, ago, labelColor, uid, type Board } from "@/lib/model";
+import { LABEL_COLORS, ago, fmtText, labelColor, uid, type Board } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
 import { useBoard } from "@/components/app/BoardProvider";
 import { Avatar } from "@/components/app/ui";
@@ -56,7 +56,7 @@ export function ActivityFeed({ cardId }: { cardId?: string }) {
   const { board } = useBoard(); const items = cardId ? board.activity.filter(a => a.cardId === cardId) : board.activity;
   if (!items.length) return <p className="muted">No activity yet.</p>;
   return <ul className="b-activity">{items.slice(0, 200).map(a => { const m = board.members.find(x => x.id === a.by);
-    return <li key={a.id}><Avatar p={m ?? { id: a.by, name: a.byName, initials: a.byName.slice(0, 1).toUpperCase(), color: "" }} size="sm" /><div><b>{a.byName}</b> {cardId ? a.ctext || a.text : a.cardId && !cardId ? <Link href={`/app/b/${board.id}?card=${a.cardId}`} scroll={false}>{a.text}</Link> : a.text}<small className="muted" style={{ display: "block" }}>{ago(a.at)}</small></div></li>; })}</ul>;
+    return <li key={a.id}><Avatar p={m ?? { id: a.by, name: a.byName, initials: a.byName.slice(0, 1).toUpperCase(), color: "" }} size="sm" /><div><b>{a.byName}</b> {cardId ? fmtText(a.ctext || a.text) : a.cardId && !cardId ? <Link href={`/app/b/${board.id}?card=${a.cardId}`} scroll={false}>{fmtText(a.text)}</Link> : fmtText(a.text)}<small className="muted" style={{ display: "block" }}>{ago(a.at)}</small></div></li>; })}</ul>;
 }
 function Archived() {
   const { board, dispatch, role, editable } = useBoard(); const [mode, setMode] = useState<"cards" | "lists">("cards"); const [q, setQ] = useState(""); const [confirm, setConfirm] = useState<string | null>(null);

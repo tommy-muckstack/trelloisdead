@@ -3,7 +3,7 @@
 // edit/delete, and the card's activity (Show details / Hide details).
 import { useMemo, useRef, useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { ago, uid, type Card } from "@/lib/model";
+import { ago, fmtText, uid, type Card } from "@/lib/model";
 import { useBoard } from "@/components/app/BoardProvider";
 import { Avatar } from "@/components/app/ui";
 import { Markdown } from "@/components/board/Markdown";
@@ -50,6 +50,6 @@ export function Comments({ card }: { card: Card }) {
           : <div className="c-bubble"><Markdown text={r.c.text} usernames={usernames} /></div>}
         {editing !== r.c.id && (r.c.by === me || role === "admin") && <div className="c-feed__acts">{r.c.by === me && <button onClick={() => { setEditing(r.c.id); setEditText(r.c.text); }}>Edit</button>}{del === r.c.id ? <><span className="muted">Delete forever? There is no undo.</span><button className="danger" onClick={() => { dispatch({ t: "comment.delete", cardId: card.id, commentId: r.c.id }, { undoable: false }); setDel(null); }}>Delete comment</button><button onClick={() => setDel(null)}>Cancel</button></> : <button onClick={() => setDel(r.c.id)}>Delete</button>}</div>}
       </div></li>
-      : <li key={r.a.id} className="c-feed__a"><Avatar p={board.members.find(m => m.id === r.a.by) ?? { id: r.a.by, name: r.a.byName, initials: r.a.byName.slice(0, 1).toUpperCase(), color: "" }} size="sm" /><div className="grow"><b>{r.a.byName}</b> {r.a.ctext || r.a.text}<small className="muted" style={{ display: "block" }}>{ago(r.a.at)}</small></div></li>)}</ul>
+      : <li key={r.a.id} className="c-feed__a"><Avatar p={board.members.find(m => m.id === r.a.by) ?? { id: r.a.by, name: r.a.byName, initials: r.a.byName.slice(0, 1).toUpperCase(), color: "" }} size="sm" /><div className="grow"><b>{r.a.byName}</b> {fmtText(r.a.ctext || r.a.text)}<small className="muted" style={{ display: "block" }}>{ago(r.a.at)}</small></div></li>)}</ul>
   </section>;
 }

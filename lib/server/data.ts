@@ -6,7 +6,7 @@ import type { SessionUser } from "@/lib/session";
 import { applyAction, allowed, normalizeAction, SERVER_ONLY, type Action, type ActionBody } from "@/lib/actions";
 import { mentionsIn } from "@/lib/markdown";
 import {
-  LIMITS, colorFor, findCard, initialsOf, isId, memberOf, mkBoard, mkCard, mkLabels, mkList, now, summary, uid, usernameFrom, REMINDERS, fmtDate,
+  LIMITS, colorFor, findCard, initialsOf, isId, memberOf, mkBoard, mkCard, mkLabels, mkList, now, summary, uid, usernameFrom, REMINDERS, dateToken,
   type Board, type BoardSummary, type Notification, type Person, type Role, type Scheduled, type UserDoc, type Visibility, type Workspace, type WsMember,
 } from "@/lib/model";
 import { buildFromTemplate, copyBoard, TEMPLATES } from "@/lib/templates";
@@ -190,7 +190,7 @@ async function afterSave(before: Board, after: Board, applied: Action[], me: Use
     const c = findCard(after, id)?.card; if (!c || !c.due || c.dueComplete || c.archived || c.reminder < 0) continue;
     if (new Date(c.due).getTime() < Date.now()) continue; // already due: no reminder
     const fireAt = new Date(Math.max(Date.now(), new Date(c.due).getTime() - c.reminder * 6e4)); // reminder time already passed → remind now
-    for (const p of new Set([...c.members, ...c.watchers])) want.get(p)?.push({ key: `${after.id}:${c.id}`, fireAt: fireAt.toISOString(), text: `${c.title} is due ${fmtDate(c.due, { time: true })} (${REMINDER_LABEL(c.reminder).toLowerCase()})`, boardId: after.id, cardId: c.id });
+    for (const p of new Set([...c.members, ...c.watchers])) want.get(p)?.push({ key: `${after.id}:${c.id}`, fireAt: fireAt.toISOString(), text: `${c.title} is due ${dateToken(c.due)} (${REMINDER_LABEL(c.reminder).toLowerCase()})`, boardId: after.id, cardId: c.id });
   }
   const keys = new Set([...touched].map(id => `${after.id}:${id}`));
   for (const [p, items] of want) await mutateDoc<UserDoc>("user", p, u => (u ? { ...u, scheduled: [...u.scheduled.filter(x => !keys.has(x.key)), ...items].slice(-300) } : undefined));
