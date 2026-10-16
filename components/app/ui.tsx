@@ -6,13 +6,14 @@ import { Star, ChevronLeft, X } from "lucide-react";
 import { bgCss, colorFor, type BoardSummary, type Person, type Workspace } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
 
-/** Close on outside mousedown or Escape. Escape is not swallowed, so parent handlers still see it. */
+/** Close on outside mousedown or Escape. Escape is marked handled (defaultPrevented) so the layer below ignores it. */
 export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => void, active = true) {
   const cb = useRef(onClose); cb.current = onClose;
   useEffect(() => {
     if (!active) return;
     const down = (e: MouseEvent) => { const el = ref.current; if (el && !el.contains(e.target as Node)) cb.current(); };
-    const key = (e: KeyboardEvent) => { if (e.key === "Escape") cb.current(); };
+    // Escape closes only this layer: mark it handled (preventDefault, not stopPropagation) so dialogs underneath stay open.
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); cb.current(); } };
     const t = setTimeout(() => { document.addEventListener("mousedown", down); document.addEventListener("keydown", key); }, 0);
     return () => { clearTimeout(t); document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
   }, [ref, active]);
@@ -40,5 +41,6 @@ export function BoardTile({ b, showWs }: { b: BoardSummary; showWs?: string }) {
     <button className={"tr-tile__star" + (on ? " on" : "")} aria-label={on ? `Unstar ${b.title}` : `Star ${b.title}`} aria-pressed={on} onClick={() => toggleStar(b.id)}><Star size={16} fill={on ? "currentColor" : "none"} /></button>
   </div>;
 }
-export const copyText = async (text: string) => { try { await navigator.clipboard.writeText(text); return true; } catch { return false; } };
+/** Copy to the clipboard; resolves false (instead of hanging) when the browser blocks or stalls clipboard access. */
+export const copyText = async (text: string) => { try { return await Promise.race([navigator.clipboard.writeText(text).then(() => true), new Promise<boolean>(r => setTimeout(() => r(false), 1500))]); } catch { return false; } };
 export const absUrl = (path: string) => (typeof window !== "undefined" ? window.location.origin : "") + path;

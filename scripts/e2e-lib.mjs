@@ -6,7 +6,7 @@ export function ok(cond, msg) { if (cond) console.log("  ✓ " + msg); else { fa
 export async function run(name, fn) {
   const browser = await chromium.launch({ headless: process.env.HEADED !== "1" });
   const errors = [];
-  const newPage = async (o = {}) => { const ctx = await browser.newContext({ viewport: { width: o.w ?? 1440, height: o.h ?? 900 }, userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36" }); const page = await ctx.newPage();
+  const newPage = async (o = {}) => { const ctx = await browser.newContext({ permissions: ["clipboard-read", "clipboard-write"], viewport: { width: o.w ?? 1440, height: o.h ?? 900 }, userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Safari/537.36" }); const page = await ctx.newPage();
     page.on("pageerror", e => errors.push("pageerror: " + e.message)); page.on("console", m => { if (m.type() === "error" && !/Failed to load resource: the server responded with a status of (404|401|403)/.test(m.text())) errors.push(m.text()); }); return page; };
   console.log(name);
   try { await fn({ browser, newPage }); } catch (e) { failures++; console.log("  ✗ threw: " + (e?.stack ?? e)); }
