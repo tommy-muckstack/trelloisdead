@@ -10,6 +10,8 @@ import { BoardProvider, useBoard } from "@/components/app/BoardProvider";
 import { useDismiss } from "@/components/app/ui";
 import { BoardHeader } from "@/components/board/BoardHeader";
 import type { MenuView } from "@/components/board/BoardMenu";
+import { TableView, CalendarView, TimelineView, DashboardView, MapView, type ViewId } from "@/components/board/views/Views";
+import { AutomationDialog, PowerUpsDialog } from "@/components/board/Automation";
 import { CardTile } from "@/components/board/CardTile";
 import { ListMenu } from "@/components/board/ListMenu";
 import { Eye } from "lucide-react";
@@ -23,14 +25,19 @@ export function BoardScreen({ initial, role, via }: { initial: Board; role: Role
 function BoardBody() {
   const { board, dispatch, editable } = useBoard(); const app = useApp(); const router = useRouter(); const sp = useSearchParams();
   const openCard = sp.get("card"); const [filter, setFilter] = useState<Filter>(EMPTY_FILTER); const [filterOpen, setFilterOpen] = useState(false); const [menu, setMenu] = useState<MenuView | null>(null);
+  const view = (["table", "calendar", "timeline", "dashboard", "map"].includes(sp.get("view") ?? "") ? sp.get("view") : "board") as ViewId;
+  const setView = useCallback((v: ViewId) => { const q = new URLSearchParams(sp.toString()); if (v === "board") q.delete("view"); else q.set("view", v); router.replace(`/app/b/${board.id}${q.size ? "?" + q : ""}`, { scroll: false }); }, [router, sp, board.id]);
+  const [pu, setPu] = useState(false); const [auto, setAuto] = useState<null | "rules" | "card" | "board">(null);
+  useEffect(() => { const h = (e: Event) => setAuto((e as CustomEvent).detail ?? "rules"); window.addEventListener("trelloisdead:automation", h); return () => window.removeEventListener("trelloisdead:automation", h); }, []);
   const setOpen = useCallback((id: string | null) => { const q = new URLSearchParams(sp.toString()); if (id) q.set("card", id); else q.delete("card"); router.replace(`/app/b/${board.id}${q.size ? "?" + q : ""}`, { scroll: false }); }, [router, sp, board.id]);
   useEffect(() => { void app.patchMe({ viewed: board.id }); }, [board.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { document.title = `${board.title} | TrelloIsDead`; }, [board.title]);
   const lists = board.lists.filter(l => !l.archived);
   return <div className="b-root" style={{ background: bgCss(board.bg) }} data-board={board.id}>
-    <BoardHeader filter={filter} setFilter={setFilter} filterOpen={filterOpen} setFilterOpen={setFilterOpen} menu={menu} setMenu={setMenu} />
+    <BoardHeader filter={filter} setFilter={setFilter} filterOpen={filterOpen} setFilterOpen={setFilterOpen} menu={menu} setMenu={setMenu} view={view} setView={setView} onPowerUps={() => setPu(true)} onAutomation={() => setAuto("rules")} />
     {board.closed && <div className="b-closed">This board is closed. {editable || board.members.find(m => m.id === app.user.id)?.role === "admin" ? <button className="tr-btn sm" onClick={() => dispatch({ t: "board.patch", patch: { closed: false } })}>Reopen board</button> : "Ask a board admin to reopen it."}</div>}
-    <Lists lists={lists} filter={filter} onOpen={setOpen} />
+    {view === "board" ? <Lists lists={lists} filter={filter} onOpen={setOpen} /> : view === "table" ? <TableView filter={filter} onOpen={setOpen} /> : view === "calendar" ? <CalendarView filter={filter} onOpen={setOpen} /> : view === "timeline" ? <TimelineView filter={filter} onOpen={setOpen} /> : view === "dashboard" ? <DashboardView filter={filter} /> : <MapView filter={filter} onOpen={setOpen} />}
+    {pu && <PowerUpsDialog onClose={() => setPu(false)} />}{auto && <AutomationDialog tab0={auto} onClose={() => setAuto(null)} />}
     {openCard && <CardModal key={openCard} cardId={openCard} onClose={() => setOpen(null)} onOpen={setOpen} />}
     {isFiltering(filter) && <div className="b-filtering">Filtering is on. <button onClick={() => setFilter(EMPTY_FILTER)}>Clear</button></div>}
   </div>;
@@ -52,11 +59,13 @@ function Lists({ lists, filter, onOpen }: { lists: List[]; filter: Filter; onOpe
   };
   return <div className="b-canvas" data-testid="lists">
     {lists.map(l => { const shown = shownOf(l); const hidden = l.cards.filter(c => !c.archived).length - shown.length;
-      return <section key={l.id} className={"b-list" + (dragList === l.id ? " drag" : "")} data-list-id={l.id} aria-label={l.title} onDragOver={e => onOver(e, l)} onDrop={e => onDrop(e, l)}>
+      const live = l.cards.filter(c => !c.archived).length; const limited = board.powerUps.includes("limits") && l.limit !== null;
+      return <section key={l.id} className={"b-list" + (dragList === l.id ? " drag" : "") + (limited && live > l.limit! ? " over-limit" : "")} data-list-id={l.id} aria-label={l.title} onDragOver={e => onOver(e, l)} onDrop={e => onDrop(e, l)}>
         <header className="b-list__hd" draggable={editable} onDragStart={e => { if ((e.target as HTMLElement).closest("input,button,select,textarea,.tr-pop")) { e.preventDefault(); return; } e.dataTransfer.setData("text/plain", l.id); setDragList(l.id); }} onDragEnd={() => { setDragList(null); setOver(null); }}>
           <input aria-label="List title" defaultValue={l.title} key={l.title} readOnly={!editable} onBlur={e => { if (e.target.value.trim() && e.target.value !== l.title) dispatch({ t: "list.patch", listId: l.id, title: e.target.value }); }} onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} />
+          {limited && <span className={"b-limit" + (live > l.limit! ? " over" : "")} title={`List limit: ${l.limit} cards`}>{live}/{l.limit}</span>}
           {l.watchers.includes(me) && <span className="b-watch" title="You are watching this list"><Eye size={14} /></span>}
-          {editable && <ListMenu list={l} onAddCard={() => { topCount.current = 0; setAdding({ list: l.id, top: true }); }} />}
+          {editable && <ListMenu list={l} onAddCard={() => { topCount.current = 0; setAdding({ list: l.id, top: true }); }} extra={board.powerUps.includes("limits") ? close => <LimitItem list={l} close={close} /> : undefined} />}
         </header>
         <div className="b-cards">
           {adding?.list === l.id && adding.top && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: topCount.current++ })} onClose={() => setAdding(null)} />}
@@ -80,4 +89,11 @@ export function AddCard({ onAdd, onClose }: { onAdd: (t: string) => void; onClos
   useDismiss(wrap, () => { if (t.trim()) submit(); onClose(); });
   return <div className="b-compose" ref={wrap}><textarea ref={ref} autoFocus aria-label="Enter a title for this card" placeholder="Enter a title for this card…" value={t} maxLength={512} onChange={e => setT(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === "Escape") onClose(); }} />
     <div style={{ display: "flex", gap: 6 }}><button className="tr-btn primary sm" onClick={submit}>Add card</button><button className="tr-btn sm subtle" aria-label="Cancel" onClick={onClose}>×</button></div></div>;
+}
+
+function LimitItem({ list, close }: { list: List; close: () => void }) {
+  const { dispatch } = useBoard(); const [v, setV] = useState(list.limit === null ? "" : String(list.limit)); const [edit, setEdit] = useState(false);
+  if (!edit) return <button className="tr-mi" onClick={() => setEdit(true)}>Set list limit{list.limit !== null && <span className="end">{list.limit}</span>}</button>;
+  return <form style={{ display: "flex", gap: 6, padding: "4px 0" }} onSubmit={e => { e.preventDefault(); const n = v.trim() === "" ? null : Math.max(0, Math.min(999, Math.floor(Number(v)))); dispatch({ t: "list.patch", listId: list.id, limit: Number.isFinite(n as number) ? n : null }); close(); }}>
+    <input className="tr-in" type="number" min={0} max={999} autoFocus aria-label="List limit" placeholder="No limit" value={v} onChange={e => setV(e.target.value)} /><button className="tr-btn primary" style={{ height: 36 }}>Save</button></form>;
 }

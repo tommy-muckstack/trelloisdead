@@ -85,3 +85,7 @@
 .tr-table{width:100%;border-collapse:collapse}.tr-table th,.tr-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}.tr-table th{font-size:12px;color:var(--subtle);font-weight:600}
 @media (max-width:900px){.tr-side{display:none}.tr-main{padding:24px 16px 64px}}
 @media (max-width:760px){.tr-hd__nav{display:none}.tr-hd__more{display:flex}.tr-hd__create .lbl{display:none}.tr-pop{width:min(304px,calc(100vw - 24px))}}
+.pu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}.pu-card{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);border-radius:8px;padding:12px}.pu-card p{margin:6px 0 0;font-size:13px;color:var(--subtle)}
+.pu-ico{width:44px;height:44px;border-radius:8px;background:var(--sel-bg);color:var(--sel);display:flex;align-items:center;justify-content:center;flex:none}
+.au-list{list-style:none;margin:12px 0 0;padding:0}.au-list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}.au-list .tr-ib{border-radius:4px}
+.au-form{border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:8px}.au-steps{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}.au-step{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--sunken);border-radius:6px;padding:6px 8px;font-size:14px}.au-sel{width:auto;height:30px;display:inline-block}
