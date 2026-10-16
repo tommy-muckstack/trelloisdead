@@ -1,7 +1,10 @@
 // Server-side data access. Collections (lib/store.ts): user/<id>, workspace/<id>, board/<id>, bsum/<id> (small board
 // summary for tiles and access checks), email/<address> -> user id, invite/<address> (pending invites for people
 // without an account yet), token/<token> (invite links), filemeta/<id> + blob_files (uploads), boards/<id> (legacy, migrated).
-import { delBlob, delDoc, getDoc, mutateDoc, putDoc } from "@/lib/store";
+import crypto from "node:crypto";
+import { delDoc, getDoc, mutateDoc, putDoc } from "@/lib/store";
+/** Unguessable ids for invite links and uploaded files. */
+const secret = () => crypto.randomBytes(24).toString("base64url");
 import type { SessionUser } from "@/lib/session";
 import { applyAction, allowed, normalizeAction, SERVER_ONLY, type Action, type ActionBody } from "@/lib/actions";
 import { mentionsIn } from "@/lib/markdown";
@@ -79,16 +82,24 @@ export async function ensureUser(s: SessionUser): Promise<UserDoc> {
 
 const REMINDER_LABEL = (m: number) => REMINDERS.find(r => r.v === m)?.label ?? "";
 /** Move due reminders whose time has come into the notification list. */
-function materialize(u: UserDoc): UserDoc | undefined {
-  const t = Date.now(); const due = u.scheduled.filter(s => new Date(s.fireAt).getTime() <= t); if (!due.length) return undefined;
+/** Move due reminders into notifications. `stale` keys are dropped silently (card archived or deleted, board gone, no longer a member or watcher). */
+function materialize(u: UserDoc, stale: Set<string>): UserDoc | undefined {
+  const t = Date.now(); const all = u.scheduled.filter(s => new Date(s.fireAt).getTime() <= t); if (!all.length) return undefined;
+  const due = all.filter(s => !stale.has(s.key));
   const fresh: Notification[] = due.map(s => ({ id: uid("n"), at: s.fireAt, read: false, kind: "due", text: s.text, by: "", byName: "Reminder", boardId: s.boardId, cardId: s.cardId, link: `/app/b/${s.boardId}?card=${s.cardId}` }));
-  return { ...u, scheduled: u.scheduled.filter(s => !due.includes(s)), notifications: [...fresh, ...u.notifications].slice(0, LIMITS.notifications) };
+  return { ...u, scheduled: u.scheduled.filter(s => !all.includes(s)), notifications: [...fresh, ...u.notifications].slice(0, LIMITS.notifications) };
 }
 export type MePayload = { user: UserDoc; workspaces: Workspace[]; boards: BoardSummary[]; invites: PendingInvite[] };
 export type PendingInvite = { kind: "workspace" | "board"; id: string; name: string; role: Role; byName: string; at: string };
 export async function loadMe(s: SessionUser): Promise<MePayload> {
   let user = await ensureUser(s);
-  if (user.scheduled.some(x => new Date(x.fireAt).getTime() <= Date.now())) user = (await mutateDoc<UserDoc>("user", user.id, u => (u ? materialize(u) : undefined))) ?? user;
+  const firing = user.scheduled.filter(x => new Date(x.fireAt).getTime() <= Date.now());
+  if (firing.length) {
+    const stale = new Set<string>();
+    for (const x of firing) { const b = await getBoard(x.boardId); const hit = b ? findCard(b, x.cardId) : null; const c = hit?.card;
+      if (!b || !hit || !c || c.archived || hit.list.archived || c.dueComplete || !c.due || !memberOf(b, user.id) || !(c.members.includes(user.id) || c.watchers.includes(user.id))) stale.add(x.key); }
+    user = (await mutateDoc<UserDoc>("user", user.id, u => (u ? materialize(u, stale) : undefined))) ?? user;
+  }
   const workspaces = (await Promise.all(user.workspaces.map(id => getDoc<Workspace>("workspace", id)))).filter((w): w is Workspace => !!w && w.members.some(m => m.id === user.id));
   const ids = new Set<string>(user.boards); for (const w of workspaces) for (const b of w.boards) ids.add(b);
   const sums = (await Promise.all([...ids].map(id => getDoc<BSum>("bsum", id)))).filter((x): x is BSum => !!x);
@@ -119,7 +130,7 @@ export async function patchUser(s: SessionUser, p: UserPatch): Promise<UserDoc> 
   if (!u) throw new HttpError(404, "No such user");
   if (profileChanged) { // keep the copies of this person on boards and workspaces fresh
     const me = personOf(u);
-    for (const id of u.boards) await mutateDoc<Board>("board", id, b => (b && memberOf(b, me.id) ? applyAction(b, { id: uid("x"), at: now(), by: me.id, byName: me.name, t: "member.profile", person: me }) : undefined));
+    for (const id of u.boards) await mutateDoc<Board>("board", id, b => (b && memberOf(b, me.id) ? { ...applyAction(b, { id: uid("x"), at: now(), by: me.id, byName: me.name, t: "member.profile", person: me }), version: b.version + 1 } : undefined));
     for (const id of u.workspaces) await mutateDoc<Workspace>("workspace", id, w => (w && w.members.some(m => m.id === me.id) ? { ...w, members: w.members.map(m => (m.id === me.id ? { ...me, role: m.role } : m)) } : undefined));
   }
   return u;
@@ -225,7 +236,6 @@ export async function deleteBoard(s: SessionUser, boardId: string) {
   if (!acc.board.closed) throw new HttpError(400, "Close the board before deleting it.");
   for (const m of acc.board.members) await indexBoard(m.id, boardId, false);
   await removeBoardFromWorkspace(acc.board.workspaceId, boardId);
-  for (const c of acc.board.lists.flatMap(l => l.cards)) for (const a of c.attachments) if (a.kind === "file") await delFile(a.url);
   await delDoc("board", boardId); await delDoc("bsum", boardId);
 }
 export async function moveBoard(s: SessionUser, boardId: string, wsId: string): Promise<Board> {
@@ -265,7 +275,7 @@ export async function transfer(s: SessionUser, o: { kind: "card" | "list"; copy:
   const newId = uid("l");
   const after = await mutateDoc<Board>("board", o.toBoard, b => {
     if (!b) return undefined; let seq = b.seq;
-    const cards = list.cards.filter(c => !c.archived).map((c, i) => { const id = `${newId}c${i}`; return { ...c, id, num: ++seq, labels: c.labels.map(x => src.board.labels.find(l => l.id === x)).map(l => l && b.labels.find(y => y.color === l.color && y.name === l.name)?.id).filter((x): x is string => !!x), members: c.members.filter(m => memberOf(b, m)), watchers: [], votes: [], custom: {}, comments: o.copy ? [] : c.comments,
+    const cards = list.cards.filter(c => !o.copy || !c.archived).map((c, i) => { const id = `${newId}c${i}`; return { ...c, id, num: ++seq, labels: c.labels.map(x => src.board.labels.find(l => l.id === x)).map(l => l && b.labels.find(y => y.color === l.color && y.name === l.name)?.id).filter((x): x is string => !!x), members: c.members.filter(m => memberOf(b, m)), watchers: [], votes: [], custom: {}, comments: o.copy ? [] : c.comments,
       checklists: c.checklists.map((cl, k) => ({ ...cl, id: `${id}k${k}`, items: cl.items.map((it, j) => ({ ...it, id: `${id}k${k}i${j}`, member: null })) })), attachments: c.attachments.map((x, j) => ({ ...x, id: `${id}a${j}` })), cover: c.cover?.attachmentId ? null : c.cover }; });
     const lists = [...b.lists]; lists.splice(Math.max(0, Math.min(lists.length, o.index)), 0, { ...mkList(newId, list.title, cards), limit: list.limit });
     const act = { id: uid("a"), ...by, cardId: null, text: `${o.copy ? "copied" : "moved"} list “${list.title}” from ${src.board.title}`, ctext: "" };
@@ -335,7 +345,7 @@ export async function inviteLink(s: SessionUser, kind: "board" | "workspace", id
   const me = await ensureUser(s); if (me.guest) throw new HttpError(401, "Sign in to share invite links.");
   if (kind === "workspace") { const { ws, admin } = await wsAdmin(me.id, id); if (!admin) throw new HttpError(403, "Only Workspace admins can create invite links."); if (ws.inviteToken && !reset) return ws.inviteToken; }
   else { const acc = await access(me.id, id); if (!acc?.role || acc.role === "observer") throw new HttpError(403, "Only board members can share invite links."); const cur = await getDoc<{ token: string }>("boardtoken", id); if (cur?.token && !reset) return cur.token; }
-  const token = uid("t") + uid(); await putDoc("token", token, { kind, id, by: me.id });
+  const token = "t" + secret(); await putDoc("token", token, { kind, id, by: me.id });
   if (kind === "workspace") await mutateDoc<Workspace>("workspace", id, w => { if (!w) return undefined; if (w.inviteToken) void delDoc("token", w.inviteToken); return { ...w, inviteToken: token }; });
   else { const cur = await getDoc<{ token: string }>("boardtoken", id); if (cur?.token) await delDoc("token", cur.token); await putDoc("boardtoken", id, { token }); }
   return token;
@@ -402,7 +412,7 @@ export async function cancelWorkspaceInvite(s: SessionUser, wsId: string, email:
 export async function deleteWorkspace(s: SessionUser, wsId: string) {
   const { ws, admin } = await wsAdmin(s.id, wsId); if (!admin) throw new HttpError(403, "Only Workspace admins can delete a Workspace.");
   const u = await ensureUser(s); if (u.workspaces.length < 2) throw new HttpError(400, "This is your only Workspace. Create another one before deleting it.");
-  for (const id of ws.boards) { const b = await getBoard(id); if (!b) continue; for (const m of b.members) await indexBoard(m.id, id, false); for (const c of b.lists.flatMap(l => l.cards)) for (const a of c.attachments) if (a.kind === "file") await delFile(a.url); await delDoc("board", id); await delDoc("bsum", id); }
+  for (const id of ws.boards) { const b = await getBoard(id); if (!b) continue; for (const m of b.members) await indexBoard(m.id, id, false); await delDoc("board", id); await delDoc("bsum", id); }
   for (const m of ws.members) await mutateDoc<UserDoc>("user", m.id, x => (x ? { ...x, workspaces: x.workspaces.filter(w => w !== wsId) } : undefined));
   if (ws.inviteToken) await delDoc("token", ws.inviteToken);
   await delDoc("workspace", wsId);
@@ -422,9 +432,10 @@ export async function search(s: SessionUser, q: string) {
   const archivedOk = ops.some(([k, v]) => k === "is" && v === "archived");
   const cards: SearchHit[] = []; const matchedBoards: BoardSummary[] = [];
   for (const b of boards) {
+    if (cards.length >= 200) break;
     if (!words.length && !ops.length) break;
     if (words.length && !ops.length && words.every(w => b.title.toLowerCase().includes(w))) matchedBoards.push(summary(b, me.id));
-    for (const l of b.lists) for (const c of l.cards) {
+    scan: for (const l of b.lists) for (const c of l.cards) {
       const archived = c.archived || l.archived; if (archivedOk ? !archived : archived) continue;
       const hay = [c.title, c.desc, ...c.comments.map(x => x.text), ...c.checklists.flatMap(cl => cl.items.map(i => i.text))].join("\n").toLowerCase();
       if (!words.every(w => hay.includes(w))) continue;
@@ -438,7 +449,7 @@ export async function search(s: SessionUser, q: string) {
         return true;
       });
       if (ok) cards.push({ boardId: b.id, boardTitle: b.title, bg: b.bg, cardId: c.id, title: c.title, list: l.title, labels: c.labels.map(id => b.labels.find(x => x.id === id)?.color ?? "").filter(Boolean), due: c.due, dueComplete: c.dueComplete, archived, members: c.members.map(id => memberOf(b, id)?.initials ?? "") });
-      if (cards.length >= 200) break;
+      if (cards.length >= 200) break scan;
     }
   }
   return { cards, boards: matchedBoards };
@@ -461,16 +472,23 @@ export async function saveFile(s: SessionUser, f: { name: string; mime: string; 
   if (f.boardId) { const acc = await access(s.id, f.boardId); if (!acc?.role || acc.role === "observer") throw new HttpError(403, "You need to be a board member to upload here."); }
   else if (f.kind === "attachment") throw new HttpError(400, "Attachments belong to a board.");
   const { putBlob } = await import("@/lib/store");
-  const meta: FileMeta = { id: uid("f") + uid(), name: f.name.slice(0, 256) || "file", mime: f.mime.slice(0, 100) || "application/octet-stream", size: f.bytes.length, boardId: f.boardId, kind: f.kind, owner: s.id, at: now() };
+  const meta: FileMeta = { id: "f" + secret(), name: f.name.slice(0, 256) || "file", mime: f.mime.slice(0, 100) || "application/octet-stream", size: f.bytes.length, boardId: f.boardId, kind: f.kind, owner: s.id, at: now() };
   await putBlob("files", meta.id, f.bytes); await putDoc("filemeta", meta.id, meta);
   return meta;
 }
-export async function readFile(s: SessionUser | null, id: string): Promise<{ meta: FileMeta; bytes: Buffer } | null> {
+/** Attachments are readable by anyone who can see the board they were uploaded to, or (for copied and moved cards)
+ *  a board passed as `viaBoard` that the reader can see and that has a card attaching this exact file. */
+export async function readFile(s: SessionUser | null, id: string, viaBoard?: string | null): Promise<{ meta: FileMeta; bytes: Buffer } | null> {
   if (!isId(id)) return null; const meta = await getDoc<FileMeta>("filemeta", id); if (!meta) return null;
-  if (meta.kind === "attachment") { if (!s || !meta.boardId || !(await access(s.id, meta.boardId))) return null; }
+  if (meta.kind === "attachment") {
+    if (!s) return null;
+    let ok = !!meta.boardId && !!(await access(s.id, meta.boardId));
+    if (!ok && viaBoard && isId(viaBoard)) { const acc = await access(s.id, viaBoard); ok = !!acc && acc.board.lists.some(l => l.cards.some(c => c.attachments.some(a => a.kind === "file" && a.url.endsWith("/api/files/" + id)))); }
+    if (!ok) return null;
+  }
   const { getBlob } = await import("@/lib/store"); const bytes = await getBlob("files", id); return bytes ? { meta, bytes } : null;
 }
-async function delFile(url: string) { const id = url.split("/").pop() ?? ""; if (!isId(id)) return; await delBlob("files", id); await delDoc("filemeta", id); }
+// Uploaded files are never deleted with a board: copied and moved cards on other boards keep pointing at them.
 
 // ---------------------------------------------------------------- guests becoming accounts
 /** A guest who signs in keeps everything: their user doc, workspaces and boards are re-keyed to the account id. */

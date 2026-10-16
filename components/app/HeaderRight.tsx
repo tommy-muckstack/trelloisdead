@@ -10,7 +10,7 @@ export function HeaderRight() {
   const app = useApp();
   return <div className="tr-hd__right">
     <HeaderSearch /><NotificationsBell />
-    <button className="tr-ib" aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)" onClick={openShortcuts}><HelpCircle size={18} /></button>
+    <button className="tr-ib tr-hide-sm" aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)" onClick={openShortcuts}><HelpCircle size={18} /></button>
     {app.session.guest && <a className="tr-btn sm primary tr-hide-sm" href={`${BP}/signup?callbackUrl=${BP}/app`}>Sign up to keep your work</a>}
     <AccountMenu /><ShortcutsDialog />
   </div>;

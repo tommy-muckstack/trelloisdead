@@ -12,7 +12,7 @@ export const GET = api<P>(async (u, req, { params }) => {
 export const POST = api<P>(async (u, req, { params }) => {
   const { id } = await params; const b = await body(req); if (!Array.isArray(b.actions)) throw new HttpError(400, "actions[] required");
   const acc = await access(u.id, id); if (!acc) throw new HttpError(404, "This board doesn't exist, or you don't have access to it.");
-  if (!acc.role && !b.actions.every((a: any) => a?.t === "card.watch")) throw new HttpError(403, acc.via === "workspace" ? "Join this board to make changes." : "You need to be a board member to edit this board.");
+  if (!acc.role) throw new HttpError(403, acc.via === "workspace" ? "Join this board to make changes." : "You need to be a board member to edit this board.");
   return { board: await applyActions(u, id, b.actions) };
 });
 export const DELETE = api<P>(async (u, _req, { params }) => { await deleteBoard(u, (await params).id); return { ok: true }; });

@@ -60,4 +60,26 @@ describe("collaboration", () => {
     const me = await D.loadMe(ada); const other = await D.createBoard(ada, { title: "Other", workspaceId: me.workspaces[0]!.id });
     const r = await D.transfer(ada, { kind: "card", copy: false, fromBoard: boardId, itemId: "cada000001", toBoard: other.id, toList: other.lists[1]!.id, index: 0 });
     expect((await D.getBoard(other.id))!.lists[1]!.cards[0]!.title).toBe("from ada"); expect((await D.getBoard(boardId))!.lists[0]!.cards.some(c => c.id === "cada000001")).toBe(false); expect(r.boardId).toBe(other.id); });
+  it("re-inviting the only admin does not demote them; their own invite link doesn't either", async () => {
+    await D.inviteToBoard(sam, boardId, "ada@example.com", "observer"); const token = await D.inviteLink(ada, "board", boardId); await D.joinByToken(ada, token);
+    expect((await D.getBoard(boardId))!.members.find(m => m.id === ada.id)!.role).toBe("admin"); });
+  it("moving a list to another board keeps its archived cards", async () => {
+    const me = await D.loadMe(ada); const src = await D.createBoard(ada, { title: "Src", workspaceId: me.workspaces[0]!.id }); const dst = await D.createBoard(ada, { title: "Dst", workspaceId: me.workspaces[0]!.id });
+    const l = src.lists[0]!.id; await D.applyActions(ada, src.id, [{ t: "card.add", listId: l, cardId: "carch00001", title: "old", index: 0 }, { t: "card.add", listId: l, cardId: "copen00001", title: "open", index: 0 }, { t: "card.patch", cardId: "carch00001", patch: { archived: true } }]);
+    const r = await D.transfer(ada, { kind: "list", copy: false, fromBoard: src.id, itemId: l, toBoard: dst.id, index: 0 });
+    const moved = (await D.getBoard(dst.id))!.lists.find(x => x.id === r.listId)!; expect(moved.cards.map(c => [c.title, c.archived])).toEqual([["open", false], ["old", true]]); });
+  it("drops due reminders for cards that were archived before the reminder fired", async () => {
+    const me = await D.loadMe(sam); const b = await D.createBoard(sam, { title: "Remind", workspaceId: me.workspaces[0]!.id }); const l = b.lists[0]!.id;
+    await D.applyActions(sam, b.id, [{ t: "card.add", listId: l, cardId: "crem000001", title: "gone soon", index: 0 }, { t: "card.member", cardId: "crem000001", userId: sam.id, on: true }, { t: "card.patch", cardId: "crem000001", patch: { due: new Date(Date.now() + 30 * 6e4).toISOString(), reminder: 1440 } }]);
+    await S.mutateDoc<any>("user", sam.id, u => ({ ...u, scheduled: u.scheduled.map((x: any) => ({ ...x, fireAt: new Date(Date.now() + 864e5).toISOString() })) })); // not yet due
+    await D.applyActions(sam, b.id, [{ t: "list.archiveCards", listId: l }]);
+    await S.mutateDoc<any>("user", sam.id, u => ({ ...u, scheduled: u.scheduled.map((x: any) => ({ ...x, fireAt: new Date(Date.now() - 1000).toISOString() })) })); // now it fires
+    const after = await D.loadMe(sam); expect(after.user.notifications.some(n => n.kind === "due" && n.cardId === "crem000001")).toBe(false); expect(after.user.scheduled.some(x => x.cardId === "crem000001")).toBe(false); });
+  it("copied attachments are readable from the board they were copied to, and invite tokens are random", async () => {
+    const me = await D.loadMe(ada); const a = await D.createBoard(ada, { title: "A", workspaceId: me.workspaces[0]!.id }); const f = await D.saveFile(ada, { name: "x.txt", mime: "text/plain", bytes: new Uint8Array([1, 2, 3]), kind: "attachment", boardId: a.id });
+    await D.applyActions(ada, a.id, [{ t: "card.add", listId: a.lists[0]!.id, cardId: "cfile00001", title: "f", index: 0 }, { t: "attachment.add", cardId: "cfile00001", attachment: { id: "afile00001", kind: "file", url: `/trelloisdead/api/files/${f.id}`, name: "x.txt", mime: "text/plain", size: 3 } }]);
+    const b2 = await D.createBoard(ada, { title: "B", workspaceId: me.workspaces[0]!.id }); await D.inviteToBoard(ada, b2.id, "sam@example.com", "normal");
+    await D.transfer(ada, { kind: "card", copy: true, fromBoard: a.id, itemId: "cfile00001", toBoard: b2.id, toList: b2.lists[0]!.id, index: 0 });
+    expect(await D.readFile(sam, f.id)).toBeNull(); expect((await D.readFile(sam, f.id, b2.id))!.bytes.length).toBe(3); expect(await D.readFile(sam, f.id, a.id)).toBeNull();
+    expect(f.id).toMatch(/^f[A-Za-z0-9_-]{32}$/); expect(await D.inviteLink(ada, "board", a.id)).toMatch(/^t[A-Za-z0-9_-]{32}$/); });
 });

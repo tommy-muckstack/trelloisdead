@@ -57,6 +57,7 @@ describe("permissions and validation", () => {
     expect(allowed(b, a({ t: "card.add", listId: "l_a", cardId: "c9", title: "x", index: 0 }, bob))).toBe(false);
     b = act(b, { t: "member.add", person: bob, role: "observer" }); expect(allowed(b, a({ t: "card.add", listId: "l_a", cardId: "c9", title: "x", index: 0 }, bob))).toBe(false); expect(allowed(b, a({ t: "card.watch", cardId: "c_a1", on: true }, bob))).toBe(true);
     b = act(b, { t: "member.role", userId: bob.id, role: "normal" }); expect(allowed(b, a({ t: "board.patch", patch: { visibility: "public" } }, bob))).toBe(false); expect(allowed(b, a({ t: "board.patch", patch: { title: "x" } }, bob))).toBe(true); });
+  it("re-adding an existing member never changes their role", () => { const b = base(); expect(act(b, { t: "member.add", person: me, role: "observer" })).toBe(b); });
   it("keeps at least one admin", () => { const b = base(); expect(act(b, { t: "member.role", userId: me.id, role: "normal" })).toBe(b); expect(act(b, { t: "member.remove", userId: me.id })).toBe(b); });
   it("action bodies never use the stamped field names", () => { for (const t of ["list.sort"]) expect(JSON.stringify(normalizeAction({ t, listId: "l_aa", sortBy: "title" }))).not.toContain('"by"'); });
   it("normalizes untrusted input", () => { expect(normalizeAction(null)).toBeNull(); expect(normalizeAction({ t: "card.add", listId: "../x", cardId: "c1", title: "t" })).toBeNull(); expect(normalizeAction({ t: "nope" })).toBeNull();

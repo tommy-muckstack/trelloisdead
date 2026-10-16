@@ -3,7 +3,7 @@ import { readFile } from "@/lib/server/data";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 const INLINE = /^(image\/(png|jpeg|gif|webp|avif)|application\/pdf|video\/(mp4|webm)|audio\/(mpeg|ogg|wav)|text\/plain)$/;
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const f = await readFile(await currentUser(), (await params).id);
+  const f = await readFile(await currentUser(), (await params).id, new URL(req.url).searchParams.get("b"));
   if (!f) return new Response("Not found", { status: 404 });
   const inline = INLINE.test(f.meta.mime) && new URL(req.url).searchParams.get("download") === null;
   const name = encodeURIComponent(f.meta.name);

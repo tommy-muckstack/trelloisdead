@@ -3,7 +3,7 @@
 // watching, dates, description, comments, attachments, checklist, location, votes, custom fields and members.
 import { useSyncExternalStore } from "react";
 import { AlignLeft, CheckSquare, Clock, Eye, MessageSquare, Paperclip, MapPin, ThumbsUp, LayoutTemplate } from "lucide-react";
-import { ageLevel, fmtDate, dueStatus, labelColor, progress, type Card } from "@/lib/model";
+import { ageLevel, fileUrl, fmtDate, dueStatus, labelColor, progress, type Card } from "@/lib/model";
 import { useBoard } from "@/components/app/BoardProvider";
 import { Avatar } from "@/components/app/ui";
 
@@ -26,9 +26,9 @@ export function CardTile({ card, dragging, draggable, onOpen, onDragStart, onDra
   const age = pu.includes("aging") ? ageLevel(card) : 0; const showDone = board.settings.completeOnFront;
   const dateText = card.start && card.due ? `${fmtDate(card.start)} – ${fmtDate(card.due)}` : card.due ? fmtDate(card.due) : card.start ? `${new Date(card.start + "T23:59:59") < new Date() ? "Started" : "Starts"}: ${fmtDate(card.start)}` : "";
   return <article className={"b-card" + (dragging ? " drag" : "") + (full ? " full" : "") + (age ? " age" + age : "") + (selected ? " sel" : "") + (card.dueComplete ? " complete" : "")} data-card-id={card.id} draggable={draggable} tabIndex={0} role="button" aria-label={`Open card ${card.title}`}
-    style={full && coverAtt ? { backgroundImage: `linear-gradient(transparent 40%,rgba(0,0,0,.55)),url(${coverAtt.url})` } : undefined}
+    style={full && coverAtt ? { backgroundImage: `linear-gradient(transparent 40%,rgba(0,0,0,.55)),url(${fileUrl(coverAtt.url, board.id)})` } : undefined}
     onDragStart={e => { e.dataTransfer.setData("text/plain", card.id); e.dataTransfer.effectAllowed = "move"; onDragStart(); }} onDragEnd={onDragEnd} onClick={onOpen} onKeyDown={e => { if (e.key === "Enter" && e.target === e.currentTarget) onOpen(); }}>
-    {!full && coverAtt && <div className="b-card__img" style={{ backgroundImage: `url(${coverAtt.url})` }} />}
+    {!full && coverAtt && <div className="b-card__img" style={{ backgroundImage: `url(${fileUrl(coverAtt.url, board.id)})` }} />}
     {!full && !coverAtt && coverColor && <div className={"b-card__cover lc-" + coverColor} />}
     {full && coverColor && !coverAtt && <div className={"b-card__fullbg lc-" + coverColor} />}
     <div className="b-card__body">

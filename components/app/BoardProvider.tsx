@@ -21,7 +21,7 @@ export function BoardProvider({ initial, role: role0, via: via0, children }: { i
   const app = useApp(); const me = app.user.id;
   const [server, setServer] = useState(initial); const [pending, setPending] = useState<Action[]>([]); const [role, setRole] = useState(role0); const [via, setVia] = useState(via0);
   const [save, setSave] = useState<Save>("saved"); const [lastAction, setLast] = useState<ActionBody | null>(null);
-  const pendingRef = useRef<Action[]>([]); const inFlight = useRef(false); const serverRef = useRef(initial); const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<Action[]>([]); const inFlight = useRef(false); const serverRef = useRef(initial); const timer = useRef<ReturnType<typeof setTimeout> | null>(null); const failing = useRef(false); // back off to 3s while the server is failing
   const board = useMemo(() => pending.reduce(applyAction, server), [server, pending]);
   const boardRef = useRef(board); boardRef.current = board;
   const setPendingBoth = (p: Action[]) => { pendingRef.current = p; setPending(p); };
@@ -31,14 +31,14 @@ export function BoardProvider({ initial, role: role0, via: via0, children }: { i
     inFlight.current = true; const batch = pendingRef.current.slice(0, 50); setSave("saving");
     try {
       const { board: b } = await app.call<{ board: Board }>("POST", `/api/b/${serverRef.current.id}`, { actions: batch.map(({ by: _b, byName: _n, at: _a, ...rest }) => rest) });
-      serverRef.current = b; setServer(b); setPendingBoth(pendingRef.current.slice(batch.length)); setSave(pendingRef.current.length ? "saving" : "saved");
+      failing.current = false; serverRef.current = b; setServer(b); setPendingBoth(pendingRef.current.slice(batch.length)); setSave(pendingRef.current.length ? "saving" : "saved");
       app.setBoardSummary(summary(b, me));
     } catch (e) {
       const status = (e as { status?: number }).status ?? 0;
       if (status >= 400 && status < 500) { setPendingBoth(pendingRef.current.slice(batch.length)); setSave("saved"); app.toast((e as Error).message, { kind: "error" }); void reloadRef.current(); }
-      else { setSave(navigator.onLine ? "error" : "offline"); }
-    } finally { inFlight.current = false; if (pendingRef.current.length) timer.current = setTimeout(() => void flush(), save === "error" ? 3000 : 150); }
-  }, [app, me, save]);
+      else { failing.current = true; setSave(navigator.onLine ? "error" : "offline"); }
+    } finally { inFlight.current = false; if (pendingRef.current.length) timer.current = setTimeout(() => void flush(), failing.current ? 3000 : 150); }
+  }, [app, me]);
 
   const undoRef = useRef<ActionBody[]>([]); const redoRef = useRef<ActionBody[]>([]); const [, bump] = useState(0);
   const enqueue = useCallback((a: Action, delay: number) => { setPendingBoth([...pendingRef.current, a]); setSave("saving"); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => void flush(), delay); }, [flush]);

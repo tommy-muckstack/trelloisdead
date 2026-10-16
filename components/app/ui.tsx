@@ -14,7 +14,8 @@ export function useDismiss(ref: RefObject<HTMLElement | null>, onClose: () => vo
     const down = (e: MouseEvent) => { const el = ref.current; if (el && !el.contains(e.target as Node)) cb.current(); };
     // Escape closes only this layer: mark it handled (preventDefault, not stopPropagation) so dialogs underneath stay open.
     const key = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); cb.current(); } };
-    const t = setTimeout(() => { document.addEventListener("mousedown", down); document.addEventListener("keydown", key); }, 0);
+    document.addEventListener("keydown", key); // at once, so an Escape right after opening still closes it
+    const t = setTimeout(() => document.addEventListener("mousedown", down), 0); // next tick, so the click that opened it doesn't close it
     return () => { clearTimeout(t); document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
   }, [ref, active]);
 }

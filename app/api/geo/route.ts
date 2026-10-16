@@ -1,11 +1,13 @@
 import { api } from "@/lib/server/http";
 export const runtime = "nodejs"; export const dynamic = "force-dynamic";
 // Card locations: place search through OpenStreetMap's Nominatim (free; usage policy: identify the app, max ~1 request/second, cache results).
-const cache = new Map<string, unknown>(); let last = 0;
+const cache = new Map<string, unknown>(); let last = 0; let queue: Promise<unknown> = Promise.resolve();
 export const GET = api(async (_u, req) => {
   const q = (new URL(req.url).searchParams.get("q") ?? "").trim().slice(0, 200); if (q.length < 3) return { places: [] };
   if (cache.has(q)) return cache.get(q);
-  const wait = 1100 - (Date.now() - last); if (wait > 0) await new Promise(r => setTimeout(r, wait)); last = Date.now();
+  // serialise: each request waits for the previous one, then for 1.1 s since it started (Nominatim allows ~1 request/second)
+  const turn = queue.then(async () => { const wait = 1100 - (Date.now() - last); if (wait > 0) await new Promise(res => setTimeout(res, wait)); last = Date.now(); }); queue = turn.catch(() => {}); await turn;
+  if (cache.has(q)) return cache.get(q);
   const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`, { headers: { "user-agent": "TrelloIsDead/1.0 (+https://yourappisdead.com/trelloisdead; open-source kanban)", "accept-language": "en" } }).catch(() => null);
   if (!r?.ok) return { places: [], error: "Place search is unavailable right now." };
   const rows = (await r.json()) as { display_name: string; name?: string; lat: string; lon: string }[];

@@ -64,7 +64,7 @@ function CreateMenu({ close }: { close: () => void }) {
 export function Header() {
   const path = usePathname(); const onBoard = path.includes("/app/b/");
   return <header className="tr-hd" data-testid="app-header">
-    <Link href="/app" className="tr-hd__logo" aria-label="TrelloIsDead boards"><Mark size={22} />TrelloIsDead</Link>
+    <Link href="/app" className="tr-hd__logo" aria-label="TrelloIsDead boards"><Mark size={22} /><span className="tr-hd__word">TrelloIsDead</span></Link>
     <nav className="tr-hd__nav" aria-label="Main">
       <Dropdown label={<>Workspaces <ChevronDown size={14} /></>}>{close => <WorkspacesMenu close={close} />}</Dropdown>
       <Dropdown label={<>Recent <ChevronDown size={14} /></>} wide>{close => <RecentMenu close={close} />}</Dropdown>
