@@ -90,7 +90,7 @@ export function CoverPop({ card, close }: { card: Card; close: () => void }) {
     <h6>Size</h6><div style={{ display: "flex", gap: 8 }}>{(["normal", "full"] as const).map(s => <button key={s} className={"c-coversize" + (cur?.size === s ? " on" : "")} disabled={!cur} aria-label={s === "normal" ? "Cover above the title" : "Full-card cover"} aria-pressed={cur?.size === s} onClick={() => cur && set({ ...cur, size: s })}><i className={s} /></button>)}</div>
     {cur && <button className="tr-btn full" style={{ marginTop: 8 }} onClick={() => set(null)}>Remove cover</button>}
     <h6>Colors</h6><div className="b-colors">{COVER_COLORS.map(c => <button key={c} aria-label={`${c} cover`} className={"lc-" + c + (cur?.color === c ? " on" : "")} onClick={() => set({ color: c, attachmentId: null, size: cur?.size ?? "normal" })} />)}</div>
-    {imgs.length > 0 && <><h6>Attachments</h6><div className="tr-bgs" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>{imgs.map(a => <button key={a.id} aria-label={`Use ${a.name} as cover`} className={cur?.attachmentId === a.id ? "on" : ""} style={{ background: `center/cover url(${a.url})`, height: 48 }} onClick={() => set({ color: null, attachmentId: a.id, size: cur?.size ?? "normal" })} />)}</div></>}
+    {imgs.length > 0 && <><h6>Attachments</h6><div className="tr-bgs" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>{imgs.map(a => <button key={a.id} aria-label={`Use ${a.name} as cover`} className={cur?.attachmentId === a.id ? "on" : ""} style={{ background: `center/cover url(${a.url}?b=${board.id})`, height: 48 }} onClick={() => set({ color: null, attachmentId: a.id, size: cur?.size ?? "normal" })} />)}</div></>}
   </div>;
 }
 export function LocationPop({ card, close }: { card: Card; close: () => void }) {

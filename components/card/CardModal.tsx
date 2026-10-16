@@ -3,7 +3,7 @@
 // location, attachments and checklists. Right: comments and activity.
 import { useEffect, useRef, useState } from "react";
 import { X, Plus, Tag, Clock, CheckSquare, User, Paperclip, MoreHorizontal, Eye, AlignLeft, MapPin, Image as ImageIcon, ChevronDown, ThumbsUp, Link2, LayoutTemplate, Archive, Undo2, Trash2, Copy, ArrowRight, ListPlus, Download, Pencil, Zap, Play } from "lucide-react";
-import { ago, dueStatus, findCard, fmtDate, labelColor, uid, type Attachment, type Card, type CustomField } from "@/lib/model";
+import { ago, dueStatus, fileUrl, findCard, fmtDate, labelColor, uid, type Attachment, type Card, type CustomField } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
 import { useBoard } from "@/components/app/BoardProvider";
 import { Avatar, PopHead, copyText, useDismiss } from "@/components/app/ui";
@@ -37,12 +37,12 @@ export function CardModal({ cardId, onClose, onOpen }: { cardId: string; onClose
   return <div className="tr-scrim c-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
     <div className={"c-modal" + (drag ? " drop" : "")} role="dialog" aria-modal="true" aria-label={`Card: ${card.title}`} data-testid="card-modal"
       onDragOver={e => { if (editable && e.dataTransfer.types.includes("Files")) { e.preventDefault(); setDrag(true); } }} onDragLeave={e => { if (e.currentTarget === e.target) setDrag(false); }} onDrop={e => { if (e.dataTransfer.files.length && editable) { e.preventDefault(); setDrag(false); void upload(e.dataTransfer.files); } }}>
-      {(card.cover?.color || coverAtt) && <div className={"c-cover" + (coverAtt ? " img" : "")} style={coverAtt ? { backgroundImage: `url(${coverAtt.url})` } : undefined}>{card.cover?.color && <i className={"lc-" + card.cover.color} />}</div>}
+      {(card.cover?.color || coverAtt) && <div className={"c-cover" + (coverAtt ? " img" : "")} style={coverAtt ? { backgroundImage: `url(${fileUrl(coverAtt.url, board.id)})` } : undefined}>{card.cover?.color && <i className={"lc-" + card.cover.color} />}</div>}
       <div className="c-top">
         {editable ? <Pop className="c-listchip" label={<>{list.title}<ChevronDown size={14} /></>} title={`In list ${list.title}. Move card`}>{close => <MovePop card={card} mode="move" close={close} onMovedAway={onClose} />}</Pop> : <span className="c-listchip">{list.title}</span>}
         <span style={{ flex: 1 }} />
         {editable && <Pop className="tr-ib" label={<ImageIcon size={18} />} title="Cover" align="right">{close => <CoverPop card={card} close={close} />}</Pop>}
-        <button className={"tr-ib" + (watching ? " on" : "")} aria-pressed={watching} aria-label={watching ? "Stop watching" : "Watch"} title={watching ? "You're watching this card. Click to stop watching." : "Watch this card to get notified about comments, moves and due dates."} onClick={() => dispatch({ t: "card.watch", cardId, on: !watching })}><Eye size={18} /></button>
+        {role && <button className={"tr-ib" + (watching ? " on" : "")} aria-pressed={watching} aria-label={watching ? "Stop watching" : "Watch"} title={watching ? "You're watching this card. Click to stop watching." : "Watch this card to get notified about comments, moves and due dates."} onClick={() => dispatch({ t: "card.watch", cardId, on: !watching })}><Eye size={18} /></button>}
         <Pop className="tr-ib" label={<MoreHorizontal size={18} />} title="Card actions" align="right" testid="card-actions">{close => <Actions card={card} close={close} onGone={onClose} />}</Pop>
         <button className="tr-ib" aria-label="Close" onClick={onClose}><X size={20} /></button>
       </div>
@@ -66,7 +66,7 @@ export function CardModal({ cardId, onClose, onOpen }: { cardId: string; onClose
           <div className="c-chips">
             {members.length > 0 && <div className="c-chip"><h4>Members</h4><div className="row">{members.map(m => <Avatar key={m!.id} p={m!} />)}{editable && <Pop className="c-round" label={<Plus size={16} />} title="Add members">{close => <MembersPop card={card} close={close} />}</Pop>}</div></div>}
             {labels.length > 0 && <div className="c-chip"><h4>Labels</h4><div className="row">{labels.map(l => <span key={l!.id} className={"b-label c-lbl lc-" + l!.color} title={labelColor(l!.color).name}>{l!.name}</span>)}{editable && <Pop className="c-round" label={<Plus size={16} />} title="Add labels">{close => <LabelsPop card={card} close={close} />}</Pop>}</div></div>}
-            <div className="c-chip"><h4>Notifications</h4><button className={"c-btn" + (watching ? " sel" : "")} onClick={() => dispatch({ t: "card.watch", cardId, on: !watching })}><Eye size={16} />{watching ? "Watching" : "Watch"}{watching && " ✓"}</button></div>
+            {role && <div className="c-chip"><h4>Notifications</h4><button className={"c-btn" + (watching ? " sel" : "")} onClick={() => dispatch({ t: "card.watch", cardId, on: !watching })}><Eye size={16} />{watching ? "Watching" : "Watch"}{watching && " ✓"}</button></div>}
             {(card.due || card.start) && <div className="c-chip"><h4>{card.start && card.due ? "Dates" : card.due ? "Due date" : "Start date"}</h4><div className="row">
               {card.due && <input type="checkbox" aria-label="Mark due date complete" checked={card.dueComplete} disabled={!editable} onChange={e => dispatch({ t: "card.patch", cardId, patch: { dueComplete: e.target.checked } })} />}
               {editable ? <Pop label={<>{card.start && fmtDate(card.start)}{card.start && card.due && " – "}{card.due && fmtDate(card.due, { time: true })}{card.due && due !== "later" && due !== "none" && <span className={"c-duetag " + due}>{due === "complete" ? "Complete" : due === "overdue" ? "Overdue" : "Due soon"}</span>}<ChevronDown size={14} /></>} title="Edit dates">{close => <DatesPop card={card} close={close} />}</Pop>
@@ -110,7 +110,7 @@ function Actions({ card, close, onGone }: { card: Card; close: () => void; onGon
     {editable && <button className="tr-mi" onClick={() => setView("move")}><ArrowRight size={16} />Move</button>}
     {editable && <button className="tr-mi" onClick={() => setView("copy")}><Copy size={16} />Copy</button>}
     {editable && <button className="tr-mi" onClick={() => { dispatch({ t: "card.patch", cardId: card.id, patch: { isTemplate: !card.isTemplate } }); close(); }}><LayoutTemplate size={16} />{card.isTemplate ? "Turn into a regular card" : "Make template"}</button>}
-    <button className="tr-mi" onClick={() => { dispatch({ t: "card.watch", cardId: card.id, on: !card.watchers.includes(me) }); close(); }}><Eye size={16} />{card.watchers.includes(me) ? "Stop watching" : "Watch"}</button>
+    {editable && <button className="tr-mi" onClick={() => { dispatch({ t: "card.watch", cardId: card.id, on: !card.watchers.includes(me) }); close(); }}><Eye size={16} />{card.watchers.includes(me) ? "Stop watching" : "Watch"}</button>}
     <button className="tr-mi" onClick={async () => { const ok = await copyText(cardLink(board.id, card.id)); app.toast(ok ? "Link to this card copied." : cardLink(board.id, card.id)); close(); }}><Link2 size={16} />Copy link</button>
     {editable && <><hr className="tr-sep" /><button className="tr-mi" onClick={() => { dispatch({ t: "card.patch", cardId: card.id, patch: { archived: !card.archived } }); close(); }}><Archive size={16} />{card.archived ? "Send to board" : "Archive"}</button></>}
   </>;
@@ -125,16 +125,16 @@ function FieldInput({ f, card }: { f: CustomField; card: Card }) {
   </label>;
 }
 function Attachments({ card }: { card: Card }) {
-  const { dispatch, editable } = useBoard(); const [edit, setEdit] = useState<string | null>(null); const [name, setName] = useState(""); const [del, setDel] = useState<string | null>(null);
+  const { dispatch, editable, board } = useBoard(); const href = (a: Attachment) => fileUrl(a.url, board.id); const [edit, setEdit] = useState<string | null>(null); const [name, setName] = useState(""); const [del, setDel] = useState<string | null>(null);
   const isImg = (a: Attachment) => a.kind === "file" && a.mime.startsWith("image/");
   return <section className="c-sec" aria-label="Attachments"><div className="c-sechd"><Paperclip size={18} /><h3>Attachments</h3>{editable && <Pop className="tr-btn sm" label="Add" title="Add attachment" align="right">{close => <AttachPop card={card} close={close} />}</Pop>}</div>
     <ul className="c-atts">{card.attachments.map(a => <li key={a.id}>
-      <a className="c-att__thumb" href={a.url} target="_blank" rel="noopener noreferrer" style={isImg(a) ? { backgroundImage: `url(${a.url})` } : undefined} aria-label={`Open ${a.name}`}>{!isImg(a) && (a.kind === "link" ? <Link2 size={20} /> : (a.name.split(".").pop() ?? "file").slice(0, 4).toUpperCase())}</a>
+      <a className="c-att__thumb" href={href(a)} target="_blank" rel="noopener noreferrer" style={isImg(a) ? { backgroundImage: `url(${href(a)})` } : undefined} aria-label={`Open ${a.name}`}>{!isImg(a) && (a.kind === "link" ? <Link2 size={20} /> : (a.name.split(".").pop() ?? "file").slice(0, 4).toUpperCase())}</a>
       <div className="grow">{edit === a.id ? <form onSubmit={e => { e.preventDefault(); dispatch({ t: "attachment.rename", cardId: card.id, attachmentId: a.id, name }); setEdit(null); }} style={{ display: "flex", gap: 6 }}><input className="tr-in" autoFocus aria-label="Attachment name" value={name} onChange={e => setName(e.target.value)} /><button className="tr-btn sm primary">Save</button><button type="button" className="tr-btn sm" onClick={() => setEdit(null)}>Cancel</button></form>
-        : <><a href={a.url} target="_blank" rel="noopener noreferrer" className="c-att__name">{a.name}</a><small className="muted">Added {ago(a.at)}{a.size ? ` · ${(a.size / 1024).toFixed(a.size > 1e6 ? 0 : 1)} KB` : ""}{card.cover?.attachmentId === a.id ? " · Cover" : ""}</small></>}
+        : <><a href={href(a)} target="_blank" rel="noopener noreferrer" className="c-att__name">{a.name}</a><small className="muted">Added {ago(a.at)}{a.size ? ` · ${(a.size / 1024).toFixed(a.size > 1e6 ? 0 : 1)} KB` : ""}{card.cover?.attachmentId === a.id ? " · Cover" : ""}</small></>}
         {edit !== a.id && editable && <div className="c-feed__acts">
           {isImg(a) && <button onClick={() => dispatch({ t: "card.patch", cardId: card.id, patch: { cover: card.cover?.attachmentId === a.id ? null : { color: null, attachmentId: a.id, size: card.cover?.size ?? "normal" } } })}>{card.cover?.attachmentId === a.id ? "Remove cover" : "Make cover"}</button>}
-          {a.kind === "file" && <a href={a.url + "?download=1"}><Download size={12} /> Download</a>}
+          {a.kind === "file" && <a href={href(a) + "&download=1"}><Download size={12} /> Download</a>}
           <button onClick={() => { setEdit(a.id); setName(a.name); }}><Pencil size={12} /> Edit</button>
           {del === a.id ? <><span className="muted">Delete for good?</span><button className="danger" onClick={() => { dispatch({ t: "attachment.delete", cardId: card.id, attachmentId: a.id }, { undoable: false }); setDel(null); }}>Delete attachment</button><button onClick={() => setDel(null)}>Cancel</button></> : <button onClick={() => setDel(a.id)}>Delete</button>}
         </div>}</div></li>)}</ul></section>;

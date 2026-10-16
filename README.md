@@ -41,7 +41,7 @@ Env (production): `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `AU
 ## Gaps
 
 - No email is sent for invitations or notifications (no email service); invite links cover sharing. Firebase sends password-reset emails.
-- Live updates use polling, not websockets. Uploads are capped at 4 MB (Vercel request limit).
+- Live updates use polling, not websockets. Uploads are capped at 4 MB (Vercel request limit). Uploaded files are kept when a board is deleted, because copied or moved cards on other boards may still use them (no garbage collection yet).
 - Not built: third-party Power-Ups and integrations, importing from Trello, card mirroring, stickers, Inbox and Planner.
 
 Not affiliated with Atlassian or Trello. Apache-2.0.

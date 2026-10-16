@@ -83,6 +83,8 @@ export const COLORS = [
 export const PHOTOS: { id: string; author: string; source: string }[] = photos;
 export const photoUrl = (id: string, thumb = false) => `${BP}/bg/${id}${thumb ? "-t" : ""}.jpg`;
 export const uploadUrl = (blobId: string) => `${BP}/api/files/${blobId}`;
+/** Uploaded-file URL as seen from a board (lets members of the board a card was copied or moved to open its files). */
+export const fileUrl = (url: string, boardId: string) => (url.includes("/api/files/") ? `${url}${url.includes("?") ? "&" : "?"}b=${boardId}` : url);
 /** CSS `background` for a board's `bg` id: gradient id, "c-<color>", "p<photo>" or "u:<blobId>" (custom upload). */
 export function bgCss(bg: string, thumb = false): string {
   const g = GRADIENTS.find(x => x.id === bg); if (g) return g.css;

@@ -238,7 +238,7 @@ function applyBase(b: Board, a: Action): Board {
       return nb;
     }
     case "member.add": {
-      if (memberOf(b, a.person.id)) return b.members.find(m => m.id === a.person.id)!.role === a.role ? b : { ...b, members: b.members.map(m => (m.id === a.person.id ? { ...m, role: a.role } : m)) };
+      if (memberOf(b, a.person.id)) return b; // already on the board: keep their role (use member.role, which protects the last admin)
       return log({ ...b, members: [...b.members, { ...a.person, role: a.role }] }, a, null, a.person.id === a.by ? "joined this board" : `added ${a.person.name} to this board`);
     }
     case "member.profile": return memberOf(b, a.person.id) ? { ...b, members: b.members.map(m => (m.id === a.person.id ? { ...a.person, role: m.role } : m)) } : b;
