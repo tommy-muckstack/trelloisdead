@@ -68,3 +68,5 @@
 .b-badge.tpl{background:var(--sel-bg);color:var(--sel)}.b-badge.voted{color:var(--sel)}.b-badge.field{background:var(--hover);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;line-height:24px}
 .b-members{margin-left:auto;display:flex;gap:2px;align-items:center}
 .b-card.age1{opacity:.85}.b-card.age2{opacity:.65}.b-card.age3{opacity:.45}.b-card.age1:hover,.b-card.age2:hover,.b-card.age3:hover{opacity:1}
+.b-limit{font-size:12px;font-weight:700;color:var(--subtle);padding:0 6px}.b-limit.over{color:#ae2e24}
+@media (max-width:760px){.b-hide-sm{display:none}}

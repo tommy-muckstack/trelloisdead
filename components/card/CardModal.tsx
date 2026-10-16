@@ -2,7 +2,7 @@
 // The card back. Left: title, quick actions, members/labels/watch/dates/votes, custom fields, description,
 // location, attachments and checklists. Right: comments and activity.
 import { useEffect, useRef, useState } from "react";
-import { X, Plus, Tag, Clock, CheckSquare, User, Paperclip, MoreHorizontal, Eye, AlignLeft, MapPin, Image as ImageIcon, ChevronDown, ThumbsUp, Link2, LayoutTemplate, Archive, Undo2, Trash2, Copy, ArrowRight, ListPlus, Download, Pencil } from "lucide-react";
+import { X, Plus, Tag, Clock, CheckSquare, User, Paperclip, MoreHorizontal, Eye, AlignLeft, MapPin, Image as ImageIcon, ChevronDown, ThumbsUp, Link2, LayoutTemplate, Archive, Undo2, Trash2, Copy, ArrowRight, ListPlus, Download, Pencil, Zap, Play } from "lucide-react";
 import { ago, dueStatus, findCard, fmtDate, labelColor, uid, type Attachment, type Card, type CustomField } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
 import { useBoard } from "@/components/app/BoardProvider";
@@ -11,6 +11,7 @@ import { Markdown, MdEditor } from "@/components/board/Markdown";
 import { AttachPop, ChecklistPop, CoverPop, DatesPop, FieldsPop, LabelsPop, LocationPop, MembersPop, MovePop, cardLink, localDate } from "@/components/card/pops";
 import { Checklists } from "@/components/card/Checklists";
 import { Comments } from "@/components/card/Comments";
+import { openAutomation } from "@/components/board/Automation";
 import "./card.css";
 
 /** Button + anchored popover. */
@@ -82,6 +83,9 @@ export function CardModal({ cardId, onClose, onOpen }: { cardId: string; onClose
             <div className="c-indent"><b>{card.location.name}</b><p className="muted" style={{ margin: "2px 0 6px", fontSize: 13 }}>{card.location.address}</p><a href={`https://www.openstreetmap.org/?mlat=${card.location.lat}&mlon=${card.location.lng}#map=16/${card.location.lat}/${card.location.lng}`} target="_blank" rel="noopener noreferrer">Open in OpenStreetMap</a></div></section>}
           {card.attachments.length > 0 && <Attachments card={card} />}
           <Checklists card={card} />
+          {editable && <section className="c-sec" aria-label="Automation"><div className="c-sechd"><Zap size={18} /><h3>Automation</h3></div>
+            <div className="c-indent" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{board.buttons.filter(b => b.scope === "card").map(b => <button key={b.id} className="c-btn" onClick={() => dispatch({ t: "button.run", buttonId: b.id, cardId })}><Play size={14} />{b.name}</button>)}
+              <button className="c-btn" onClick={() => openAutomation("card")}><Plus size={14} />Add button</button></div></section>}
         </div>
         <aside className="c-side"><Comments card={card} /></aside>
       </div>
