@@ -10,7 +10,7 @@ Free, open-source kanban boards. Part of [IsDead](https://yourappisdead.com): op
 - **Views** (`?view=`): Table, Calendar, Timeline, Dashboard, Map. **Power-Ups**: Voting, Card Aging, List Limits, Custom Fields, Card Numbers. **Automation**: rules, card buttons, board buttons.
 - **Collaboration**: Workspaces with admins and members, board roles (admin, member, observer), invites by email or link, live updates (polling every 4 s), notifications (assignments, mentions, watched cards, due reminders), global search with operators.
 - **Account**: profile, activity, cards, settings, light/dark theme, colour-blind label patterns, keyboard shortcuts (`?`).
-- **Marketing and auth**: landing, pricing comparison, features, solutions, help, about, privacy, terms, templates; login (email + password, Google), sign-up with email verification, password reset; branded 404.
+- **Marketing and auth**: landing, pricing comparison, features, solutions, help, about, privacy, terms, templates; login (email + password, Google), sign-up (no email verification, like every IsDead app), password reset; branded 404.
 
 ## How it works
 
@@ -35,12 +35,12 @@ Env (production): `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON`, `AU
 
 - Unit and server tests: `npm test` (the server tests run against a temp file store).
 - End to end, with Playwright driving the real UI (start the dev server first): `BASE=http://localhost:3000/trelloisdead node scripts/e2e-<area>.mjs` for `home`, `workspaces`, `board-header`, `lists`, `card`, `views`, `search-notifications`, `account`, `auth-marketing`, `hygiene`. Two-person flows use the dev-only demo personas (`/api/session/demo?as=demo2`). `SHOTS=1` saves screenshots to `docs/qa/`.
-- Against a protected Vercel preview: add `BYPASS=<protection bypass token>`; `scripts/e2e-preview-auth.mjs` checks real Firebase sign-up, verification, reset and login.
+- Against a protected Vercel preview: add `BYPASS=<protection bypass token>`; `scripts/e2e-preview-auth.mjs` checks real Firebase sign-up, reset and login.
 - `docs/PARITY_REPORT.md` maps every QA finding to its fix or documented exception.
 
 ## Gaps
 
-- No email is sent for invitations or notifications (no email service); invite links cover sharing. Firebase sends sign-up verification and password-reset emails.
+- No email is sent for invitations or notifications (no email service); invite links cover sharing. Firebase sends password-reset emails.
 - Live updates use polling, not websockets. Uploads are capped at 4 MB (Vercel request limit).
 - Not built: third-party Power-Ups and integrations, importing from Trello, card mirroring, stickers, Inbox and Planner.
 

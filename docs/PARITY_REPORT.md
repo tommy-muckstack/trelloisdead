@@ -44,14 +44,14 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 ## Exceptions and decisions
 
 - **#8 Signed-out /app** keeps the IsDead no-login-gate rule: visitors get their own guest workspace (not a shared demo), with a clear sign-up button. Owner decision 2026-10-15.
-- **No outgoing email** for invitations or notifications (#23, #25): the project has no email service. Invite links and in-app notifications cover it. Firebase still sends verification and password-reset emails.
-- **#5 Verification** is required for new sign-ups before the first session; accounts created before this change that never verified can still log in (enforcing it would lock them out). Needs an owner decision if stricter behaviour is wanted.
+- **No outgoing email** for invitations or notifications (#23, #25): the project has no email service. Invite links and in-app notifications cover it. Firebase still sends password-reset emails.
+- **#5 No email verification** (owner decision 2026-10-16): sign-up creates the account and starts the session straight away, like every IsDead app.
 - **#21 Power-Ups**: five built-in Power-Ups; no third-party integrations.
 - **#31 Touch drag and drop**: not supported; Move actions cover touch screens.
 - **Live updates** poll every 4 seconds rather than streaming.
 
 ## Not covered by automated checks
 
-- Delivery of Firebase verification and reset emails (requests were verified on a Vercel preview; inbox delivery was not, because the test address was a throwaway @example.com).
+- Delivery of Firebase password-reset emails (the request was verified on a Vercel preview; inbox delivery was not, because the test address was a throwaway @example.com).
 - Google sign-in (needs a real Google account in a browser).
 - Dragging files from the desktop onto a card (Playwright can't drag OS files; the file picker path is tested).
