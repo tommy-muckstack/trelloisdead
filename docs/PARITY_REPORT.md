@@ -19,15 +19,15 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 | 9 | Boards home | fixed | fix/boards-home | Sidebar (Boards, Templates, Home, Workspaces with Boards/Members/Settings), starred and recently viewed boards, every Workspace's boards, Guest Workspaces (boards shared with you), invitations, closed boards with reopen and delete. Home page lists your cards by due date. |
 | 10 | Create board | fixed | fix/boards-home | Popover from the header Create menu and the "Create new board" tile: preview, photo and colour backgrounds, required title, Workspace, visibility, "Start with a template". Board delete moved behind Close → Delete with a confirmation. |
 | 11 | Templates | fixed | fix/boards-home | Gallery of 12 original templates in Trello's categories with search, preview and "Use template" (creates a real board). Boards marked as templates show under "Your Workspace templates". |
-| 12 | Board header | open | | |
+| 12 | Board header | fixed | fix/board-header | Editable title, star, visibility (Private / Workspace / Public, admins only), Filter with a count and Clear all, member avatars with role popovers, Share, and the ⋯ menu. View switcher, Power-Ups and Automation buttons arrive with fix/views-automation. |
 | 13 | Lists | open | | |
 | 14 | Cards add | open | | |
 | 15 | Card detail | open | | |
 | 16 | Card badges | open | | |
 | 17 | Drag and drop | open | | |
-| 18 | Filter | open | | |
+| 18 | Filter | fixed | fix/board-header | Trello's six categories: keyword (words match any, "quotes" exact, * all), members (none, me, each member), card status, due date (none, overdue, next day/week/month), labels (none, each label) and activity, with Any match / Exact match. |
 | 19 | Board background | fixed | fix/boards-home | 16 Unsplash photos (self-hosted, credited to the photographer, Unsplash License), 9 gradients, 9 colours, and custom image upload (PNG/JPEG/GIF/WebP up to 4 MB). |
-| 20 | Archive | open | | |
+| 20 | Archive | fixed | fix/board-header | Board menu → Archived items: search, switch between cards and lists, restore, and delete cards forever with a confirmation. Trello can't delete lists either; they restore. |
 | 21 | Power-Ups / Automation / Activity | open | | |
 | 22 | Views | open | | |
 | 23 | Workspaces / members / settings / invite | fixed | fix/boards-home | Multiple Workspaces; members with admin/member roles; invite by email (existing accounts join at once, others see the invitation when they sign up with that address); invite links; settings (name, type, short name, website, description, visibility); leave and delete. Exception: no invitation email is sent, because the project has no email service; the invite link covers that. |

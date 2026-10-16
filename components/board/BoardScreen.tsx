@@ -1,15 +1,15 @@
 "use client";
 // The board: header bar, lists with drag and drop, and the card dialog (opened with ?card=<id>, so cards have links).
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Star, Archive, Image as ImageIcon } from "lucide-react";
-import { bgCss, uid, type Board, type Card, type List, type Role } from "@/lib/model";
+import { bgCss, uid, type Board, type List, type Role } from "@/lib/model";
 import { EMPTY_FILTER, isFiltering, matches, type Filter } from "@/lib/filter";
 import { useApp } from "@/components/app/AppProvider";
-import { BoardProvider, SaveState, useBoard } from "@/components/app/BoardProvider";
+import { BoardProvider, useBoard } from "@/components/app/BoardProvider";
 import { useDismiss } from "@/components/app/ui";
-import { BackgroundPicker } from "@/components/app/CreateBoard";
+import { BoardHeader } from "@/components/board/BoardHeader";
+import type { MenuView } from "@/components/board/BoardMenu";
 import { CardTile } from "@/components/board/CardTile";
 import { CardModal } from "@/components/board/CardModal";
 import "./board.css";
@@ -20,41 +20,17 @@ export function BoardScreen({ initial, role, via }: { initial: Board; role: Role
 
 function BoardBody() {
   const { board, dispatch, editable } = useBoard(); const app = useApp(); const router = useRouter(); const sp = useSearchParams();
-  const openCard = sp.get("card"); const [filter, setFilter] = useState<Filter>(EMPTY_FILTER);
+  const openCard = sp.get("card"); const [filter, setFilter] = useState<Filter>(EMPTY_FILTER); const [filterOpen, setFilterOpen] = useState(false); const [menu, setMenu] = useState<MenuView | null>(null);
   const setOpen = useCallback((id: string | null) => { const q = new URLSearchParams(sp.toString()); if (id) q.set("card", id); else q.delete("card"); router.replace(`/app/b/${board.id}${q.size ? "?" + q : ""}`, { scroll: false }); }, [router, sp, board.id]);
   useEffect(() => { void app.patchMe({ viewed: board.id }); }, [board.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { document.title = `${board.title} | TrelloIsDead`; }, [board.title]);
   const lists = board.lists.filter(l => !l.archived);
   return <div className="b-root" style={{ background: bgCss(board.bg) }} data-board={board.id}>
-    <BoardBar filter={filter} setFilter={setFilter} />
+    <BoardHeader filter={filter} setFilter={setFilter} filterOpen={filterOpen} setFilterOpen={setFilterOpen} menu={menu} setMenu={setMenu} />
     {board.closed && <div className="b-closed">This board is closed. {editable || board.members.find(m => m.id === app.user.id)?.role === "admin" ? <button className="tr-btn sm" onClick={() => dispatch({ t: "board.patch", patch: { closed: false } })}>Reopen board</button> : "Ask a board admin to reopen it."}</div>}
     <Lists lists={lists} filter={filter} onOpen={setOpen} />
     {openCard && <CardModal cardId={openCard} onClose={() => setOpen(null)} />}
     {isFiltering(filter) && <div className="b-filtering">Filtering is on. <button onClick={() => setFilter(EMPTY_FILTER)}>Clear</button></div>}
-  </div>;
-}
-
-function BoardBar({ filter, setFilter }: { filter: Filter; setFilter: (f: Filter) => void }) {
-  const { board, dispatch, editable, me } = useBoard(); const app = useApp(); const star = app.starred(board.id);
-  const [bgOpen, setBgOpen] = useState(false); const bgRef = useRef<HTMLDivElement>(null); useDismiss(bgRef, () => setBgOpen(false), bgOpen);
-  const [arch, setArch] = useState(false);
-  const archivedCards = board.lists.flatMap(l => l.cards.filter(c => c.archived).map(c => ({ c, l }))); const archivedLists = board.lists.filter(l => l.archived);
-  return <div className="b-bar">
-    <input className="b-title" aria-label="Board title" defaultValue={board.title} key={board.title} readOnly={!editable} onBlur={e => { if (e.target.value.trim() && e.target.value !== board.title) dispatch({ t: "board.patch", patch: { title: e.target.value } }); }} onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} size={Math.max(4, board.title.length)} />
-    <button className="b-btn icon" aria-label={star ? "Unstar board" : "Star board"} aria-pressed={star} onClick={() => app.toggleStar(board.id)}><Star size={16} fill={star ? "#f5cd47" : "none"} color={star ? "#f5cd47" : "currentColor"} /></button>
-    <span className="b-sp" />
-    <input className="b-search" aria-label="Filter cards" placeholder="Filter cards" value={filter.q} onChange={e => setFilter({ ...filter, q: e.target.value })} />
-    <div className="b-lbls" role="group" aria-label="Filter by label">{board.labels.slice(0, 6).map(l => <button key={l.id} aria-label={`Filter label ${l.name || l.color}`} aria-pressed={filter.labels.includes(l.id)} className={"lc-" + l.color + (filter.labels.includes(l.id) ? " on" : "")} onClick={() => setFilter({ ...filter, labels: filter.labels.includes(l.id) ? filter.labels.filter(x => x !== l.id) : [...filter.labels, l.id] })} />)}</div>
-    {editable && <div className="tr-dd" ref={bgRef}><button className="b-btn" aria-expanded={bgOpen} onClick={() => setBgOpen(o => !o)}><ImageIcon size={16} />Background</button>
-      {bgOpen && <div className="tr-pop right"><h6>Change background</h6><BackgroundPicker value={board.bg} boardId={board.id} onPick={bg => dispatch({ t: "board.patch", patch: { bg } })} /></div>}</div>}
-    <button className="b-btn" aria-expanded={arch} onClick={() => setArch(a => !a)}><Archive size={16} />Archive ({archivedCards.length + archivedLists.length})</button>
-    <SaveState />
-    {arch && <aside className="b-panel" aria-label="Archived items"><div className="b-panel__hd"><b>Archived items</b><button className="tr-btn sm" onClick={() => setArch(false)}>Close</button></div>
-      {archivedLists.length + archivedCards.length === 0 && <p className="muted">Nothing archived.</p>}
-      {archivedLists.map(l => <div key={l.id} className="b-arch"><span>List: {l.title}</span>{editable && <button className="tr-btn sm" onClick={() => dispatch({ t: "list.patch", listId: l.id, archived: false })}>Restore</button>}</div>)}
-      {archivedCards.map(({ c, l }) => <div key={c.id} className="b-arch"><span>{c.title} <small className="muted">in {l.title}</small></span>{editable && <button className="tr-btn sm" onClick={() => dispatch({ t: "card.patch", cardId: c.id, patch: { archived: false } })}>Restore</button>}</div>)}
-    </aside>}
-    <span hidden>{me}</span>
   </div>;
 }
 
@@ -101,5 +77,3 @@ export function AddCard({ onAdd, onClose }: { onAdd: (t: string) => void; onClos
   return <div className="b-compose" ref={wrap}><textarea ref={ref} autoFocus aria-label="Enter a title for this card" placeholder="Enter a title for this card…" value={t} maxLength={512} onChange={e => setT(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } if (e.key === "Escape") onClose(); }} />
     <div style={{ display: "flex", gap: 6 }}><button className="tr-btn primary sm" onClick={submit}>Add card</button><button className="tr-btn sm subtle" aria-label="Cancel" onClick={onClose}>×</button></div></div>;
 }
-export type { Card };
-export const useBoardMemo = () => { const b = useBoard(); return useMemo(() => b, [b]); };
