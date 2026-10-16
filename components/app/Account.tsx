@@ -2,12 +2,13 @@
 // Account menu (avatar), keyboard-shortcuts panel and the profile / activity / cards / settings pages.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { User, Activity, CreditCard, Settings, Sun, Moon, Monitor, Keyboard, LogOut, LogIn } from "lucide-react";
+import { User, Activity, CreditCard, Settings, Sun, Moon, Monitor, Keyboard, LogOut, LogIn, HelpCircle } from "lucide-react";
 import { ago, bgCss, fmtText, AVATAR_COLORS, type Theme } from "@/lib/model";
 import { BP } from "@/lib/basepath";
 import { useApp } from "@/components/app/AppProvider";
 import { Avatar, PopHead, useDismiss } from "@/components/app/ui";
 import { DueBadge, type MyCard } from "@/components/app/HomePage";
+import { SHORTCUTS } from "@/components/app/shortcuts-data";
 
 export const openShortcuts = () => window.dispatchEvent(new Event("trelloisdead:shortcuts"));
 export function AccountMenu() {
@@ -29,6 +30,7 @@ export function AccountMenu() {
         <Link className="tr-mi" href="/app/u/settings" onClick={close}><Settings size={16} />Settings</Link>
         <button className="tr-mi" onClick={() => setTheme(true)}><Sun size={16} />Theme<span className="end">›</span></button>
         <hr className="tr-sep" />
+        <a className="tr-mi" href={`${BP}/help`}><HelpCircle size={16} />Help</a>
         <button className="tr-mi" onClick={() => { close(); openShortcuts(); }}><Keyboard size={16} />Shortcuts</button>
         {!app.session.guest && <><hr className="tr-sep" /><form method="post" action={`${BP}/api/session/logout`} style={{ margin: 0 }}><button className="tr-mi"><LogOut size={16} />Log out</button></form></>}
       </>}
@@ -36,12 +38,6 @@ export function AccountMenu() {
   </div>;
 }
 
-export const SHORTCUTS: [string, string][] = [
-  ["?", "Show this list of shortcuts"], ["/", "Search"], ["B", "Open the boards menu (search boards)"], ["F", "Open the card filter"], ["X", "Clear all filters"], ["Q", "Toggle “cards assigned to me”"], ["W", "Show or hide the board menu"],
-  ["←  →  ↑  ↓  /  J  K", "Select a card on the board"], ["Enter", "Open the selected card"], ["N", "Add a card below the hovered card"], ["E", "Open the hovered card (quick edit)"], ["T", "Edit the title of the hovered card"],
-  ["Space", "Join or leave the hovered card"], ["1 – 9", "Toggle labels on the hovered card"], ["C", "Archive the hovered card"], ["S", "Watch or stop watching the hovered card"], ["V", "Vote on the hovered card (Voting Power-Up)"],
-  [", (<)  . (>)", "Move the hovered card to the previous / next list"], ["R", "Repeat your last label, member or move action on the hovered card"], ["Z", "Undo"], ["Shift+Z", "Redo"], ["Esc", "Close a dialog, popover or editor"], ["Ctrl/⌘ + Enter", "Save a comment or description"],
-];
 export function ShortcutsDialog() {
   const app = useApp(); const [open, setOpen] = useState(false);
   useEffect(() => { const h = () => setOpen(true); window.addEventListener("trelloisdead:shortcuts", h); return () => window.removeEventListener("trelloisdead:shortcuts", h); }, []);

@@ -23,10 +23,9 @@ export async function signInWithEmail(config: FirebaseClientConfig, sessionUrl: 
   await exchange(sessionUrl, await c.user.getIdToken());
 }
 export async function signUpWithEmail(config: FirebaseClientConfig, sessionUrl: string, email: string, password: string, name?: string) {
-  const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import("firebase/auth");
+  const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
   const c = await createUserWithEmailAndPassword(await clientAuth(config), email, password);
   if (name) await updateProfile(c.user, { displayName: name });
-  sendEmailVerification(c.user).catch(() => {});
   await exchange(sessionUrl, await c.user.getIdToken(true));
 }
 export async function signInWithGoogle(config: FirebaseClientConfig, sessionUrl: string) {
@@ -47,5 +46,7 @@ export function authErrorMessage(e: any): string {
   if (c.includes("invalid-email")) return "That email address doesn't look right.";
   if (c.includes("popup-closed")) return "Google sign-in was closed before it finished.";
   if (c.includes("too-many-requests")) return "Too many attempts. Try again in a few minutes.";
+  if (c.includes("unauthorized-continue-uri") || c.includes("invalid-continue-uri")) return "Couldn't send the email from this address. Try again.";
+  if (c.includes("network-request-failed")) return "Network problem. Check your connection and try again.";
   return e?.message ?? "Something went wrong.";
 }

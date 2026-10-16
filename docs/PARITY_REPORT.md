@@ -8,13 +8,13 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 
 | # | Area | Status | PR | Notes |
 |---|------|--------|----|-------|
-| 1 | Landing nav and footer | open | | |
-| 2 | Branding | open | | |
-| 3 | Pricing | open | | |
-| 4 | Login | open | | |
-| 5 | Signup | open | | |
-| 6 | Forgot password | open | | |
-| 7 | 404 | open | | |
+| 1 | Landing nav and footer | fixed | fix/auth-marketing | Features, Solutions, Plans and Resources open real dropdowns (and a mobile menu) linking to new original pages: /features, /solutions, /templates, /help, /about, plus pricing sections. Footer links: About, Help, Templates, source code, Privacy Policy, Terms, Contact (GitHub issues). Every former dead link now has a destination; a crawl of all marketing pages finds no links without an href and no 404s. Copy that described features the clone doesn't have (Inbox, Planner, email/Slack capture, AI) was rewritten to describe what it does. |
+| 2 | Branding | fixed | fix/auth-marketing | ATLASSIAN wordmark removed everywhere (nav, footer, login). New original tombstone mark on Trello blue. Borrowed company logos, a real customer testimonial and a Trello survey statistic were removed from the landing page. The not-affiliated disclaimer stays in the footer, About and Terms. The pricing comparison still quotes Trello's own plan descriptions (factual, nominative). |
+| 3 | Pricing | fixed | fix/auth-marketing | Checked against trello.com/pricing on 2026-10-16: Free $0, Standard $5 ($6 monthly), Premium $10 ($12.50 monthly), Enterprise $17.50 ($210/yr) — unchanged. The page now says clearly these are Trello's prices shown for comparison and leads with TrelloIsDead's $0 plan; plan buttons no longer look like they sell Trello plans; fake Enterprise estimator and search box removed; FAQ rewritten with real answers and expands. |
+| 4 | Login | fixed | fix/auth-marketing | Email → Continue → password, Google, "Can't log in?" (/forgot-password) and "Create an account" (/signup) are real links. Disabled Passkey/Microsoft/Apple/Slack buttons and the dead "Remember me" removed (IsDead rule: email + password and Google only). |
+| 5 | Signup | fixed | fix/auth-marketing | Separate /signup page: email → full name + password → straight into the app (the landing email capture prefills it). Owner decision 2026-10-16: no email verification, same as every IsDead app; login is email + password or Google. |
+| 6 | Forgot password | fixed | fix/auth-marketing | /forgot-password: email → "Check your inbox" with resend (30 s cooldown) and Return to log in. Delivery is Firebase's password-reset email. |
+| 7 | 404 | fixed | fix/auth-marketing | Branded not-found page with the site nav and footer: "Page not found. This page may be private. If someone gave you this link, you may need to be a board or Workspace member to access it." plus Go to your boards / Log in / Home. Returns HTTP 404. |
 | 8 | Signed-out /app | justified exception | fix/account-chrome | IsDead rule (owner decision, 2026-10-15): no login gate on any IsDead web app. A signed-out visitor gets their own guest workspace with a fresh "My first board" (not a shared demo board), a "Sign up to keep your work" button in the header and account menu, and everything they make moves into their account when they sign in. Features that involve other people (sharing, invites, invite links) prompt for sign-in. |
 | 9 | Boards home | fixed | fix/boards-home | Sidebar (Boards, Templates, Home, Workspaces with Boards/Members/Settings), starred and recently viewed boards, every Workspace's boards, Guest Workspaces (boards shared with you), invitations, closed boards with reopen and delete. Home page lists your cards by due date. |
 | 10 | Create board | fixed | fix/boards-home | Popover from the header Create menu and the "Create new board" tile: preview, photo and colour backgrounds, required title, Workspace, visibility, "Start with a template". Board delete moved behind Close → Delete with a confirmation. |
