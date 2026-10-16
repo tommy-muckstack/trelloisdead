@@ -1,58 +1,66 @@
 "use client";
-import { useState } from "react";
+// Log in, sign up (email → name + password → verify your email) and password reset. Email/password and Google only.
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import type { FirebaseClientConfig } from "@/lib/isdead-auth/config";
-import { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPassword, authErrorMessage } from "@/lib/isdead-auth/client";
+import { signInWithEmail, signInWithGoogle, resetPassword, authErrorMessage, createAccount, resendVerification, finishVerifiedSignUp, abandonSignUp } from "@/lib/isdead-auth/client";
 import { BP } from "@/lib/basepath";
+import { Mark } from "@/components/Mark";
 import "./trlogin.css";
 
 const G = <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden><path fill="#4285F4" d="M23 12.3c0-.8-.1-1.5-.2-2.2H12v4.2h6.2a5.3 5.3 0 01-2.3 3.5v2.9h3.7c2.2-2 3.4-5 3.4-8.4z" /><path fill="#34A853" d="M12 23.5c3.1 0 5.7-1 7.6-2.8l-3.7-2.9c-1 .7-2.3 1.1-3.9 1.1-3 0-5.5-2-6.4-4.7H1.8v3A11.5 11.5 0 0012 23.5z" /><path fill="#FBBC05" d="M5.6 14.2a6.9 6.9 0 010-4.4v-3H1.8a11.5 11.5 0 000 10.4z" /><path fill="#EA4335" d="M12 5.4c1.7 0 3.2.6 4.4 1.7l3.3-3.3A11.5 11.5 0 001.8 6.8l3.8 3A6.9 6.9 0 0112 5.4z" /></svg>;
-const MS = <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden><path fill="#f25022" d="M2 2h9.5v9.5H2z" /><path fill="#7fba00" d="M12.5 2H22v9.5h-9.5z" /><path fill="#00a4ef" d="M2 12.5h9.5V22H2z" /><path fill="#ffb900" d="M12.5 12.5H22V22h-9.5z" /></svg>;
-const AP = <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden><path fill="#111" d="M16.4 12.6c0-2.5 2-3.7 2.1-3.8-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.5 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.4 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.8-1.1-2.8-4.1zM14 5c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z" /></svg>;
-const SL = <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden><rect x="3" y="9.5" width="6" height="3" rx="1.5" fill="#e01e5a" /><rect x="9.5" y="3" width="3" height="6" rx="1.5" fill="#36c5f0" /><rect x="15" y="11.5" width="6" height="3" rx="1.5" fill="#2eb67d" /><rect x="11.5" y="15" width="3" height="6" rx="1.5" fill="#ecb22e" /></svg>;
-const Key = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" aria-hidden><circle cx="8" cy="15" r="4.5" /><path d="M11 12l8-8M16 7l3 3" /></svg>;
-const off = "Not available yet in the open-source version";
-export function TrLogin({ config, demo, to, signup = false }: { config: FirebaseClientConfig | null; demo: boolean; to: string; signup?: boolean }) {
-  const [mode, setMode] = useState<"signin" | "signup" | "reset">(signup ? "signup" : "signin");
-  const [step, setStep] = useState<1 | 2>(1);
-  const [email, setEmail] = useState(""), [password, setPassword] = useState(""), [busy, setBusy] = useState(false), [err, setErr] = useState(""), [note, setNote] = useState("");
-  const session = `${BP}/api/session`;
+export type AuthMode = "login" | "signup" | "forgot";
+export function TrLogin({ config, demo, to, mode, email: email0 = "" }: { config: FirebaseClientConfig | null; demo: boolean; to: string; mode: AuthMode; email?: string }) {
+  const [step, setStep] = useState<"email" | "details" | "verify" | "sent">(mode === "signup" && email0 ? "details" : "email");
+  const [email, setEmail] = useState(email0), [password, setPassword] = useState(""), [name, setName] = useState(""), [busy, setBusy] = useState(false), [err, setErr] = useState(""), [note, setNote] = useState(""), [cool, setCool] = useState(0);
+  useEffect(() => { if (cool <= 0) return; const t = setTimeout(() => setCool(c => c - 1), 1000); return () => clearTimeout(t); }, [cool]);
+  const session = `${BP}/api/session`; const q = to !== `${BP}/app` ? `?callbackUrl=${encodeURIComponent(to)}` : "";
   const run = async (f: () => Promise<void>) => { setBusy(true); setErr(""); setNote(""); try { await f(); } catch (e) { setErr(authErrorMessage(e)); } finally { setBusy(false); } };
-  const submit = (e: React.FormEvent) => { e.preventDefault();
-    if (!config) { setErr("Sign-in isn't configured on this deployment yet."); return; }
-    if (mode === "reset") return run(async () => { await resetPassword(config, email); setNote("If that email has an account, a reset link is on its way."); setMode("signin"); setStep(1); });
-    if (step === 1) { setStep(2); return; }
-    run(async () => { if (mode === "signup") await signUpWithEmail(config, session, email, password); else await signInWithEmail(config, session, email, password); window.location.assign(to); }); };
-  const su = mode === "signup";
-  const sw = (m: "signin" | "signup" | "reset") => (e: React.MouseEvent) => { e.preventDefault(); setMode(m); setStep(1); };
+  const need = () => { if (!config) { setErr("Sign-in isn't configured on this deployment yet. You can still use the app as a guest."); return false; } return true; };
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault(); setErr("");
+    if (mode === "forgot") { if (need()) void run(async () => { await resetPassword(config!, email); setStep("sent"); setCool(30); }); return; }
+    if (step === "email") { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr("Enter a valid email address."); return; } setStep("details"); return; }
+    if (!need()) return;
+    if (mode === "login") void run(async () => { await signInWithEmail(config!, session, email, password); window.location.assign(to); });
+    else void run(async () => { await createAccount(config!, email, password, name); setStep("verify"); setCool(30); });
+  };
+  const checkVerified = () => run(async () => { const ok = await finishVerifiedSignUp(config!, session); if (ok) window.location.assign(to); else setErr("We haven't seen the verification yet. Open the link in the email we sent, then try again."); });
+  const title = mode === "forgot" ? (step === "sent" ? "Check your inbox" : "Can't log in?") : mode === "signup" ? (step === "verify" ? "Check your inbox to verify your email" : "Sign up to continue") : "Log in to continue";
   return <main className="trl">
     <div className="art l"><i className="p1" /><i className="p2" /><i className="p3" /><b className="f1" /><b className="f2" /></div>
     <div className="art r"><i className="p1" /><i className="p2" /><b className="mon" /><b className="rob" /></div>
-    <div className="card">
-      <div className="lg"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden><rect width="32" height="32" rx="6" fill="#0c66e4" /><rect x="6.5" y="6.5" width="8" height="17" rx="1.5" fill="#fff" /><rect x="17.5" y="6.5" width="8" height="10" rx="1.5" fill="#fff" /></svg><span>TrelloIsDead</span></div>
-      <h1>{su ? "Sign up for TrelloIsDead" : mode === "reset" ? "Reset your password" : "Log in to continue"}</h1>
-      <form onSubmit={submit}>
-        <label htmlFor="tr-email">Email{!su && <i>*</i>}</label>
-        <input id="tr-email" type="email" required autoComplete="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} readOnly={step === 2 && mode !== "reset"} />
-        {step === 2 && mode !== "reset" && <><label htmlFor="tr-pass">Password</label><input id="tr-pass" type="password" required minLength={6} autoFocus autoComplete={su ? "new-password" : "current-password"} value={password} onChange={e => setPassword(e.target.value)} /></>}
-        {su && step === 1 && <p className="tos">By signing up, I accept the Atlassian <a>Cloud Terms of Service</a> and acknowledge the <a>Privacy Policy</a>.</p>}
-        {!su && mode !== "reset" && step === 1 && <label className="rm"><input type="checkbox" /> Remember me <em>i</em></label>}
-        <button className="go" disabled={busy}>{mode === "reset" ? "Send reset link" : su ? (step === 1 ? "Sign up" : "Create account") : "Continue"}</button>
-      </form>
+    <div className="card" data-testid={`auth-${mode}`}>
+      <Link href="/" className="lg" aria-label="TrelloIsDead home"><Mark size={32} /><span>TrelloIsDead</span></Link>
+      <h1>{title}</h1>
+      {step === "verify" ? <div data-testid="verify-step">
+        <p className="nt">We sent a verification link to <b>{email}</b>. Open it to verify your address, then come back here. Can&apos;t find it? Check your spam folder.</p>
+        <button className="go" disabled={busy} onClick={checkVerified}>{busy ? "Checking…" : "I've verified my email"}</button>
+        <button type="button" className="pv" disabled={busy || cool > 0} onClick={() => run(async () => { await resendVerification(config!); setNote("Sent again."); setCool(30); })}>{cool > 0 ? `Resend email (${cool}s)` : "Resend email"}</button>
+        <p className="lk"><a href="#" onClick={e => { e.preventDefault(); void abandonSignUp(config!).finally(() => { setStep("email"); setPassword(""); }); }}>Use a different email</a></p>
+      </div> : step === "sent" ? <div data-testid="reset-sent">
+        <p className="nt">If <b>{email}</b> has an account, we sent a link to reset your password. It can take a minute to arrive.</p>
+        <button type="button" className="pv" disabled={busy || cool > 0} onClick={() => run(async () => { await resetPassword(config!, email); setCool(30); setNote("Sent again."); })}>{cool > 0 ? `Resend recovery link (${cool}s)` : "Resend recovery link"}</button>
+        <p className="lk"><Link href={`/login${q}`}>Return to log in</Link></p>
+      </div> : <form onSubmit={submit} noValidate>
+        {mode === "forgot" && <p className="nt" style={{ marginTop: 0 }}>We&apos;ll send a recovery link to</p>}
+        <label htmlFor="tr-email">Email{mode === "login" && <i>*</i>}</label>
+        <input id="tr-email" type="email" required autoComplete="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} readOnly={step === "details"} autoFocus={step === "email"} />
+        {step === "details" && mode === "signup" && <><label htmlFor="tr-name">Full name</label><input id="tr-name" required autoComplete="name" placeholder="Enter full name" value={name} onChange={e => setName(e.target.value)} autoFocus maxLength={100} /></>}
+        {step === "details" && mode !== "forgot" && <><label htmlFor="tr-pass">Password</label><input id="tr-pass" type="password" required minLength={mode === "signup" ? 8 : 6} autoFocus={mode === "login"} autoComplete={mode === "signup" ? "new-password" : "current-password"} placeholder={mode === "signup" ? "At least 8 characters" : "Enter password"} value={password} onChange={e => setPassword(e.target.value)} /></>}
+        {step === "details" && <p className="lk" style={{ textAlign: "left", margin: "8px 0 0" }}><a href="#" onClick={e => { e.preventDefault(); setStep("email"); setPassword(""); }}>Change email</a></p>}
+        {mode === "signup" && <p className="tos">By signing up, I accept the TrelloIsDead <Link href="/terms">Terms</Link> and acknowledge the <Link href="/privacy">Privacy Policy</Link>.</p>}
+        <button className="go" disabled={busy || (step === "details" && mode === "signup" && (!name.trim() || password.length < 8))}>{busy ? "Working…" : mode === "forgot" ? "Send recovery link" : step === "email" ? "Continue" : mode === "signup" ? "Sign up" : "Log in"}</button>
+      </form>}
       {err && <p role="alert" className="err">{err}</p>}{note && <p role="status" className="nt">{note}</p>}
-      {mode !== "reset" && <>
-        {!su && <><p className="ow">Or login with:</p><button type="button" className="pv" disabled title={off}>{Key}Passkey</button></>}
-        <p className="ow">Or continue with:</p>
-        <button type="button" className="pv" disabled={busy || !config} onClick={() => run(async () => { await signInWithGoogle(config!, session); window.location.assign(to); })}>{G}Google</button>
-        <button type="button" className="pv" disabled title={off}>{MS}Microsoft</button>
-        <button type="button" className="pv" disabled title={off}>{AP}Apple</button>
-        <button type="button" className="pv" disabled title={off}>{SL}Slack</button></>}
-      <p className="lk">{su ? <a href="#" onClick={sw("signin")}>Already have an account? Log in</a> : mode === "reset" ? <a href="#" onClick={sw("signin")}>Back to log in</a> : <><a href="#" onClick={sw("reset")}>Can&apos;t log in?</a> &nbsp;•&nbsp; <a href="#" onClick={sw("signup")}>Create an account</a></>}</p>
+      {mode !== "forgot" && step !== "verify" && <><p className="ow">Or continue with:</p>
+        <button type="button" className="pv" disabled={busy} onClick={() => { if (need()) void run(async () => { await signInWithGoogle(config!, session); window.location.assign(to); }); }}>{G}Google</button></>}
+      {step !== "verify" && step !== "sent" && <p className="lk">{mode === "signup" ? <Link href={`/login${q}`}>Already have an account? Log in</Link> : mode === "forgot" ? <Link href={`/login${q}`}>Return to log in</Link> : <><Link href={`/forgot-password${q}`}>Can&apos;t log in?</Link> &nbsp;•&nbsp; <Link href={`/signup${q}`}>Create an account</Link></>}</p>}
       <hr />
-      <div className="at"><svg width="20" height="16" viewBox="0 0 20 16" aria-hidden><path d="M6 6l6 10H0z" fill="#505f79" /><path d="M10 0l9 16h-6z" fill="#505f79" /></svg>ATLASSIAN</div>
-      <p className="oa"><u>One account</u> for Trello, Jira, Confluence and more.</p>
-      {!su && <p className="oa pp"><u>Privacy Policy</u> &nbsp;•&nbsp; <u>User Notice</u></p>}
-      {!config && <p className="nt">Sign-in not configured. Email and Google sign-in turn on once Firebase is set up.</p>}
-      {demo && <button type="button" className="demo" onClick={async () => { const r = await fetch(`${BP}/api/session/demo`, { method: "POST" }); if (r.ok) window.location.assign(to); }}>Use the demo account</button>}
+      <p className="oa"><Link href="/app">Continue without an account</Link>: your boards are saved as a guest and move into your account when you sign up.</p>
+      <p className="oa pp"><Link href="/privacy">Privacy Policy</Link> &nbsp;•&nbsp; <Link href="/terms">Terms</Link></p>
+      {!config && <p className="nt">Email and Google sign-in turn on once Firebase is configured for this deployment.</p>}
+      {demo && mode === "login" && <button type="button" className="demo" onClick={async () => { const r = await fetch(`${BP}/api/session/demo`, { method: "POST" }); if (r.ok) window.location.assign(to); }}>Use the demo account</button>}
     </div>
   </main>;
 }

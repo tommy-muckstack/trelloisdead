@@ -29,6 +29,25 @@ export async function signUpWithEmail(config: FirebaseClientConfig, sessionUrl: 
   sendEmailVerification(c.user).catch(() => {});
   await exchange(sessionUrl, await c.user.getIdToken(true));
 }
+/** Sign-up step 1: create the Firebase account, set the display name and send the verification email.
+ *  No session yet: the app is entered only after the address is verified (see finishVerifiedSignUp). */
+export async function createAccount(config: FirebaseClientConfig, email: string, password: string, name: string, continueUrl?: string) {
+  const { createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import("firebase/auth");
+  const c = await createUserWithEmailAndPassword(await clientAuth(config), email, password);
+  if (name.trim()) await updateProfile(c.user, { displayName: name.trim() });
+  await sendEmailVerification(c.user, continueUrl ? { url: continueUrl } : undefined);
+}
+export async function resendVerification(config: FirebaseClientConfig, continueUrl?: string) {
+  const { sendEmailVerification } = await import("firebase/auth"); const u = (await clientAuth(config)).currentUser; if (!u) throw new Error("Start again: we lost track of your new account.");
+  await sendEmailVerification(u, continueUrl ? { url: continueUrl } : undefined);
+}
+/** Sign-up step 2: once the link in the email was opened, trade a fresh token for the session. Returns false if not verified yet. */
+export async function finishVerifiedSignUp(config: FirebaseClientConfig, sessionUrl: string): Promise<boolean> {
+  const u = (await clientAuth(config)).currentUser; if (!u) throw new Error("Start again: we lost track of your new account.");
+  await u.reload(); if (!u.emailVerified) return false;
+  await exchange(sessionUrl, await u.getIdToken(true)); return true;
+}
+export async function abandonSignUp(config: FirebaseClientConfig) { const { signOut } = await import("firebase/auth"); await signOut(await clientAuth(config)); }
 export async function signInWithGoogle(config: FirebaseClientConfig, sessionUrl: string) {
   const { GoogleAuthProvider, signInWithPopup } = await import("firebase/auth");
   const c = await signInWithPopup(await clientAuth(config), new GoogleAuthProvider());
@@ -47,5 +66,7 @@ export function authErrorMessage(e: any): string {
   if (c.includes("invalid-email")) return "That email address doesn't look right.";
   if (c.includes("popup-closed")) return "Google sign-in was closed before it finished.";
   if (c.includes("too-many-requests")) return "Too many attempts. Try again in a few minutes.";
+  if (c.includes("unauthorized-continue-uri") || c.includes("invalid-continue-uri")) return "Couldn't send the email from this address. Try again.";
+  if (c.includes("network-request-failed")) return "Network problem. Check your connection and try again.";
   return e?.message ?? "Something went wrong.";
 }
