@@ -11,6 +11,8 @@ import { useDismiss } from "@/components/app/ui";
 import { BoardHeader } from "@/components/board/BoardHeader";
 import type { MenuView } from "@/components/board/BoardMenu";
 import { CardTile } from "@/components/board/CardTile";
+import { ListMenu } from "@/components/board/ListMenu";
+import { Eye } from "lucide-react";
 import { CardModal } from "@/components/board/CardModal";
 import "./board.css";
 
@@ -38,7 +40,7 @@ function BoardBody() {
 function Lists({ lists, filter, onOpen }: { lists: List[]; filter: Filter; onOpen: (id: string) => void }) {
   const { board, dispatch, editable, me } = useBoard();
   const [dragCard, setDragCard] = useState<string | null>(null); const [dragList, setDragList] = useState<string | null>(null); const [over, setOver] = useState<{ list: string; index: number } | null>(null);
-  const [adding, setAdding] = useState<string | null>(null); const [newList, setNewList] = useState(""); const [listForm, setListForm] = useState(false);
+  const [adding, setAdding] = useState<{ list: string; top: boolean } | null>(null); const topCount = useRef(0); const [newList, setNewList] = useState(""); const [listForm, setListForm] = useState(false);
   const shownOf = useCallback((l: List) => l.cards.filter(c => !c.archived && matches(c, filter, { me, board })), [filter, me, board]);
   const indexAt = (el: HTMLElement, y: number) => { const cards = Array.from(el.querySelectorAll<HTMLElement>("[data-card-id]")).filter(c => c.dataset.cardId !== dragCard); let i = 0; for (const c of cards) { const r = c.getBoundingClientRect(); if (y > r.top + r.height / 2) i++; } return i; };
   const onOver = (e: React.DragEvent<HTMLElement>, l: List) => { if (dragCard) { e.preventDefault(); const i = indexAt(e.currentTarget, e.clientY); if (over?.list !== l.id || over.index !== i) setOver({ list: l.id, index: i }); } else if (dragList && dragList !== l.id) e.preventDefault(); };
@@ -51,17 +53,19 @@ function Lists({ lists, filter, onOpen }: { lists: List[]; filter: Filter; onOpe
   return <div className="b-canvas" data-testid="lists">
     {lists.map(l => { const shown = shownOf(l); const hidden = l.cards.filter(c => !c.archived).length - shown.length;
       return <section key={l.id} className={"b-list" + (dragList === l.id ? " drag" : "")} data-list-id={l.id} aria-label={l.title} onDragOver={e => onOver(e, l)} onDrop={e => onDrop(e, l)}>
-        <header className="b-list__hd" draggable={editable} onDragStart={e => { if ((e.target as HTMLElement).closest("input,button")) { e.preventDefault(); return; } e.dataTransfer.setData("text/plain", l.id); setDragList(l.id); }} onDragEnd={() => { setDragList(null); setOver(null); }}>
+        <header className="b-list__hd" draggable={editable} onDragStart={e => { if ((e.target as HTMLElement).closest("input,button,select,textarea,.tr-pop")) { e.preventDefault(); return; } e.dataTransfer.setData("text/plain", l.id); setDragList(l.id); }} onDragEnd={() => { setDragList(null); setOver(null); }}>
           <input aria-label="List title" defaultValue={l.title} key={l.title} readOnly={!editable} onBlur={e => { if (e.target.value.trim() && e.target.value !== l.title) dispatch({ t: "list.patch", listId: l.id, title: e.target.value }); }} onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }} />
-          {editable && <button className="b-list__menu" aria-label={`Archive list ${l.title}`} title="Archive this list" onClick={() => dispatch({ t: "list.patch", listId: l.id, archived: true })}>⋯</button>}
+          {l.watchers.includes(me) && <span className="b-watch" title="You are watching this list"><Eye size={14} /></span>}
+          {editable && <ListMenu list={l} onAddCard={() => { topCount.current = 0; setAdding({ list: l.id, top: true }); }} />}
         </header>
         <div className="b-cards">
+          {adding?.list === l.id && adding.top && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: topCount.current++ })} onClose={() => setAdding(null)} />}
           {shown.map((c, i) => <div key={c.id}>{over?.list === l.id && over.index === i && dragCard !== c.id && <div className="b-drop" />}<CardTile card={c} dragging={dragCard === c.id} draggable={editable} onOpen={() => onOpen(c.id)} onDragStart={() => setDragCard(c.id)} onDragEnd={() => { setDragCard(null); setOver(null); }} /></div>)}
           {over?.list === l.id && dragCard && over.index >= shown.filter(c => c.id !== dragCard).length && <div className="b-drop" />}
           {hidden > 0 && <p className="b-hidden">{hidden} card{hidden === 1 ? "" : "s"} hidden by the filter</p>}
-          {adding === l.id && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: 1e6 })} onClose={() => setAdding(null)} />}
+          {adding?.list === l.id && !adding.top && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: 1e6 })} onClose={() => setAdding(null)} />}
         </div>
-        {editable && adding !== l.id && <button className="b-add" onClick={() => setAdding(l.id)}>+ Add a card</button>}
+        {editable && adding?.list !== l.id && <button className="b-add" onClick={() => setAdding({ list: l.id, top: false })}>+ Add a card</button>}
       </section>; })}
     {editable && (listForm ? <form className="b-list b-list--new" onSubmit={e => { e.preventDefault(); if (newList.trim()) { dispatch({ t: "list.add", listId: uid("l"), title: newList, index: 1e6 }); setNewList(""); } }}>
       <input autoFocus aria-label="Enter list name" className="tr-in" placeholder="Enter list name…" value={newList} onChange={e => setNewList(e.target.value)} maxLength={512} onKeyDown={e => { if (e.key === "Escape") setListForm(false); }} />

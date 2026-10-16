@@ -20,11 +20,11 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 | 10 | Create board | fixed | fix/boards-home | Popover from the header Create menu and the "Create new board" tile: preview, photo and colour backgrounds, required title, Workspace, visibility, "Start with a template". Board delete moved behind Close → Delete with a confirmation. |
 | 11 | Templates | fixed | fix/boards-home | Gallery of 12 original templates in Trello's categories with search, preview and "Use template" (creates a real board). Boards marked as templates show under "Your Workspace templates". |
 | 12 | Board header | fixed | fix/board-header | Editable title, star, visibility (Private / Workspace / Public, admins only), Filter with a count and Clear all, member avatars with role popovers, Share, and the ⋯ menu. View switcher, Power-Ups and Automation buttons arrive with fix/views-automation. |
-| 13 | Lists | open | | |
-| 14 | Cards add | open | | |
+| 13 | Lists | fixed | fix/lists | The ⋯ button opens Trello's list menu instead of archiving: Add card (at the top), Copy list, Move list (position, or another board), Move all cards in this list, Sort by (date created, name, due date, votes with the Voting Power-Up), Watch, Archive this list, Archive all cards (with confirmation). |
+| 14 | Cards add | fixed | fix/lists | Kept: Enter adds and keeps the composer open, Shift+Enter is a newline, Escape or clicking away closes (a typed title is saved). New: add from the list menu inserts at the top. |
 | 15 | Card detail | open | | |
 | 16 | Card badges | open | | |
-| 17 | Drag and drop | open | | |
+| 17 | Drag and drop | fixed | fix/lists | Kept and re-verified with real mouse drags: cards between lists, lists by their header; order survives reload. On touch screens cards move from the card's Move action. |
 | 18 | Filter | fixed | fix/board-header | Trello's six categories: keyword (words match any, "quotes" exact, * all), members (none, me, each member), card status, due date (none, overdue, next day/week/month), labels (none, each label) and activity, with Any match / Exact match. |
 | 19 | Board background | fixed | fix/boards-home | 16 Unsplash photos (self-hosted, credited to the photographer, Unsplash License), 9 gradients, 9 colours, and custom image upload (PNG/JPEG/GIF/WebP up to 4 MB). |
 | 20 | Archive | fixed | fix/board-header | Board menu → Archived items: search, switch between cards and lists, restore, and delete cards forever with a confirmation. Trello can't delete lists either; they restore. |
