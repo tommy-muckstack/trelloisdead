@@ -12,6 +12,7 @@ import { BoardHeader } from "@/components/board/BoardHeader";
 import type { MenuView } from "@/components/board/BoardMenu";
 import { TableView, CalendarView, TimelineView, DashboardView, MapView, type ViewId } from "@/components/board/views/Views";
 import { AutomationDialog, PowerUpsDialog } from "@/components/board/Automation";
+import { useBoardShortcuts } from "@/components/board/useShortcuts";
 import { CardTile } from "@/components/board/CardTile";
 import { ListMenu } from "@/components/board/ListMenu";
 import { Eye } from "lucide-react";
@@ -28,15 +29,17 @@ function BoardBody() {
   const view = (["table", "calendar", "timeline", "dashboard", "map"].includes(sp.get("view") ?? "") ? sp.get("view") : "board") as ViewId;
   const setView = useCallback((v: ViewId) => { const q = new URLSearchParams(sp.toString()); if (v === "board") q.delete("view"); else q.set("view", v); router.replace(`/app/b/${board.id}${q.size ? "?" + q : ""}`, { scroll: false }); }, [router, sp, board.id]);
   const [pu, setPu] = useState(false); const [auto, setAuto] = useState<null | "rules" | "card" | "board">(null);
-  useEffect(() => { const h = (e: Event) => setAuto((e as CustomEvent).detail ?? "rules"); window.addEventListener("trelloisdead:automation", h); return () => window.removeEventListener("trelloisdead:automation", h); }, []);
   const setOpen = useCallback((id: string | null) => { const q = new URLSearchParams(sp.toString()); if (id) q.set("card", id); else q.delete("card"); router.replace(`/app/b/${board.id}${q.size ? "?" + q : ""}`, { scroll: false }); }, [router, sp, board.id]);
+  const [addAfter, setAddAfter] = useState<{ list: string; after: string } | null>(null);
+  const sc = useBoardShortcuts({ filter, setFilter, setFilterOpen, menu, setMenu, onOpen: setOpen, addAfter: (list, after) => setAddAfter({ list, after }), active: !openCard && view === "board" });
+  useEffect(() => { const h = (e: Event) => setAuto((e as CustomEvent).detail ?? "rules"); window.addEventListener("trelloisdead:automation", h); return () => window.removeEventListener("trelloisdead:automation", h); }, []);
   useEffect(() => { void app.patchMe({ viewed: board.id }); }, [board.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { document.title = `${board.title} | TrelloIsDead`; }, [board.title]);
   const lists = board.lists.filter(l => !l.archived);
   return <div className="b-root" style={{ background: bgCss(board.bg) }} data-board={board.id}>
     <BoardHeader filter={filter} setFilter={setFilter} filterOpen={filterOpen} setFilterOpen={setFilterOpen} menu={menu} setMenu={setMenu} view={view} setView={setView} onPowerUps={() => setPu(true)} onAutomation={() => setAuto("rules")} />
     {board.closed && <div className="b-closed">This board is closed. {editable || board.members.find(m => m.id === app.user.id)?.role === "admin" ? <button className="tr-btn sm" onClick={() => dispatch({ t: "board.patch", patch: { closed: false } })}>Reopen board</button> : "Ask a board admin to reopen it."}</div>}
-    {view === "board" ? <Lists lists={lists} filter={filter} onOpen={setOpen} /> : view === "table" ? <TableView filter={filter} onOpen={setOpen} /> : view === "calendar" ? <CalendarView filter={filter} onOpen={setOpen} /> : view === "timeline" ? <TimelineView filter={filter} onOpen={setOpen} /> : view === "dashboard" ? <DashboardView filter={filter} /> : <MapView filter={filter} onOpen={setOpen} />}
+    {view === "board" ? <Lists lists={lists} filter={filter} onOpen={setOpen} sel={sc.sel} addAfter={addAfter} setAddAfter={setAddAfter} /> : view === "table" ? <TableView filter={filter} onOpen={setOpen} /> : view === "calendar" ? <CalendarView filter={filter} onOpen={setOpen} /> : view === "timeline" ? <TimelineView filter={filter} onOpen={setOpen} /> : view === "dashboard" ? <DashboardView filter={filter} /> : <MapView filter={filter} onOpen={setOpen} />}
     {pu && <PowerUpsDialog onClose={() => setPu(false)} />}{auto && <AutomationDialog tab0={auto} onClose={() => setAuto(null)} />}
     {openCard && <CardModal key={openCard} cardId={openCard} onClose={() => setOpen(null)} onOpen={setOpen} />}
     {isFiltering(filter) && <div className="b-filtering">Filtering is on. <button onClick={() => setFilter(EMPTY_FILTER)}>Clear</button></div>}
@@ -44,7 +47,7 @@ function BoardBody() {
 }
 
 /** Lists + drag and drop. Cards: native HTML5 drag; drop index counts visible cards and maps back to the full array. */
-function Lists({ lists, filter, onOpen }: { lists: List[]; filter: Filter; onOpen: (id: string) => void }) {
+function Lists({ lists, filter, onOpen, sel, addAfter, setAddAfter }: { lists: List[]; filter: Filter; onOpen: (id: string) => void; sel: string | null; addAfter: { list: string; after: string } | null; setAddAfter: (v: { list: string; after: string } | null) => void }) {
   const { board, dispatch, editable, me } = useBoard();
   const [dragCard, setDragCard] = useState<string | null>(null); const [dragList, setDragList] = useState<string | null>(null); const [over, setOver] = useState<{ list: string; index: number } | null>(null);
   const [adding, setAdding] = useState<{ list: string; top: boolean } | null>(null); const topCount = useRef(0); const [newList, setNewList] = useState(""); const [listForm, setListForm] = useState(false);
@@ -69,7 +72,8 @@ function Lists({ lists, filter, onOpen }: { lists: List[]; filter: Filter; onOpe
         </header>
         <div className="b-cards">
           {adding?.list === l.id && adding.top && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: topCount.current++ })} onClose={() => setAdding(null)} />}
-          {shown.map((c, i) => <div key={c.id}>{over?.list === l.id && over.index === i && dragCard !== c.id && <div className="b-drop" />}<CardTile card={c} dragging={dragCard === c.id} draggable={editable} onOpen={() => onOpen(c.id)} onDragStart={() => setDragCard(c.id)} onDragEnd={() => { setDragCard(null); setOver(null); }} /></div>)}
+          {shown.map((c, i) => <div key={c.id}>{over?.list === l.id && over.index === i && dragCard !== c.id && <div className="b-drop" />}<CardTile card={c} selected={sel === c.id} dragging={dragCard === c.id} draggable={editable} onOpen={() => onOpen(c.id)} onDragStart={() => setDragCard(c.id)} onDragEnd={() => { setDragCard(null); setOver(null); }} />
+            {addAfter?.after === c.id && <div style={{ marginTop: 8 }}><AddCard onAdd={t => { const id = uid("c"); const idx = l.cards.findIndex(x => x.id === addAfter.after); dispatch({ t: "card.add", listId: l.id, cardId: id, title: t, index: idx + 1 }); setAddAfter({ list: l.id, after: id }); }} onClose={() => setAddAfter(null)} /></div>}</div>)}
           {over?.list === l.id && dragCard && over.index >= shown.filter(c => c.id !== dragCard).length && <div className="b-drop" />}
           {hidden > 0 && <p className="b-hidden">{hidden} card{hidden === 1 ? "" : "s"} hidden by the filter</p>}
           {adding?.list === l.id && !adding.top && <AddCard onAdd={t => dispatch({ t: "card.add", listId: l.id, cardId: uid("c"), title: t, index: 1e6 })} onClose={() => setAdding(null)} />}

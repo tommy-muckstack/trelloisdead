@@ -1,16 +1,17 @@
 "use client";
 import { BP } from "@/lib/basepath";
 import { useApp } from "@/components/app/AppProvider";
-import { Avatar } from "@/components/app/ui";
 import { HeaderSearch } from "@/components/app/Search";
 import { NotificationsBell } from "@/components/app/Notifications";
-// Right side of the header: search, notifications, who is signed in and how to leave.
+import { AccountMenu, ShortcutsDialog, openShortcuts } from "@/components/app/Account";
+import { HelpCircle } from "lucide-react";
+// Right side of the header: search, notifications, help/shortcuts and the account menu.
 export function HeaderRight() {
   const app = useApp();
   return <div className="tr-hd__right">
     <HeaderSearch /><NotificationsBell />
-    {app.session.guest ? <a className="tr-btn sm" href={`${BP}/login?callbackUrl=${BP}/app`}>Guest · Log in to keep your work</a> : <span className="muted" style={{ fontSize: 13 }}>{app.user.email || app.user.name}</span>}
-    <Avatar p={app.user} />
-    <form method="post" action={`${BP}/api/session/logout`} style={{ margin: 0 }}><button className="tr-btn sm subtle">Sign out</button></form>
+    <button className="tr-ib" aria-label="Keyboard shortcuts and help" title="Keyboard shortcuts (?)" onClick={openShortcuts}><HelpCircle size={18} /></button>
+    {app.session.guest && <a className="tr-btn sm primary tr-hide-sm" href={`${BP}/signup?callbackUrl=${BP}/app`}>Sign up to keep your work</a>}
+    <AccountMenu /><ShortcutsDialog />
   </div>;
 }

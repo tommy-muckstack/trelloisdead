@@ -20,15 +20,15 @@ await run("e2e-home", async ({ newPage }) => {
   ok((await p.locator(".b-list[data-list-id]").count()) === 3, "new board starts with To do / Doing / Done");
   const boardUrl = p.url(); const boardId = boardUrl.split("/b/")[1].split("?")[0];
   // background: colour, then upload
-  await p.getByRole("button", { name: "Background" }).click(); await shot(p, "19-background-picker"); await p.locator(".tr-pop").getByRole("button", { name: "More backgrounds" }).click(); await p.locator(".tr-pop").getByRole("button", { name: "Grape" }).click(); await saved(p);
+  await p.getByRole("button", { name: "Show menu" }).click(); await p.getByTestId("board-menu").getByRole("button", { name: "Change background" }).click(); const bgp = p.getByTestId("board-menu"); await shot(p, "19-background-picker"); await bgp.getByRole("button", { name: "More backgrounds" }).click(); await bgp.getByRole("button", { name: "Grape" }).click(); await saved(p);
   ok((await p.locator(".b-root").getAttribute("style")).includes("6E5DC6") || (await p.locator(".b-root").getAttribute("style")).includes("110, 93, 198"), "colour background applied");
-  await p.locator(".tr-pop").getByRole("button", { name: "‹ Back" }).click();
+  await bgp.getByRole("button", { name: "‹ Back" }).click();
   const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGNk+M/AwMDAxMDAwMDAAAAZAAJzPZ0uAAAAAElFTkSuQmCC", "base64"); fs.writeFileSync("/tmp/trello-e2e-bg.png", png);
-  await p.locator(".tr-pop input[type=file]").setInputFiles("/tmp/trello-e2e-bg.png"); await p.waitForFunction(() => /api\/files\//.test(document.querySelector(".b-root")?.getAttribute("style") ?? ""), null, { timeout: 8000 }); await saved(p);
+  await bgp.locator("input[type=file]").setInputFiles("/tmp/trello-e2e-bg.png"); await p.waitForFunction(() => /api\/files\//.test(document.querySelector(".b-root")?.getAttribute("style") ?? ""), null, { timeout: 8000 }); await saved(p);
   ok(true, "uploaded background applied");
   const bgUrl = (await p.locator(".b-root").getAttribute("style")).match(/url\("?([^")]+)/)[1]; const r = await p.request.get(new URL(bgUrl, BASE).toString()); ok(r.status() === 200 && r.headers()["content-type"] === "image/png", "uploaded background is served");
   // star from the board, check it shows on the boards page
-  await p.getByRole("button", { name: "Star board" }).click(); await settle(p, 600);
+  await p.getByRole("button", { name: "Close menu" }).click(); await p.getByRole("button", { name: "Star board" }).click(); await settle(p, 600);
   await p.goto(BASE + "/app"); await p.waitForSelector("[data-testid=boards]");
   ok(await p.getByRole("heading", { name: "Starred boards" }).isVisible(), "Starred boards section appears"); await shot(p, "09-boards-home");
   ok(await p.getByRole("heading", { name: "Recently viewed" }).isVisible(), "Recently viewed section appears");

@@ -15,7 +15,7 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 | 5 | Signup | open | | |
 | 6 | Forgot password | open | | |
 | 7 | 404 | open | | |
-| 8 | Signed-out /app | open | | |
+| 8 | Signed-out /app | justified exception | fix/account-chrome | IsDead rule (owner decision, 2026-10-15): no login gate on any IsDead web app. A signed-out visitor gets their own guest workspace with a fresh "My first board" (not a shared demo board), a "Sign up to keep your work" button in the header and account menu, and everything they make moves into their account when they sign in. Features that involve other people (sharing, invites, invite links) prompt for sign-in. |
 | 9 | Boards home | fixed | fix/boards-home | Sidebar (Boards, Templates, Home, Workspaces with Boards/Members/Settings), starred and recently viewed boards, every Workspace's boards, Guest Workspaces (boards shared with you), invitations, closed boards with reopen and delete. Home page lists your cards by due date. |
 | 10 | Create board | fixed | fix/boards-home | Popover from the header Create menu and the "Create new board" tile: preview, photo and colour backgrounds, required title, Workspace, visibility, "Start with a template". Board delete moved behind Close → Delete with a confirmation. |
 | 11 | Templates | fixed | fix/boards-home | Gallery of 12 original templates in Trello's categories with search, preview and "Use template" (creates a real board). Boards marked as templates show under "Your Workspace templates". |
@@ -33,9 +33,9 @@ Source: hands-on QA pass of 2026-10-16 (31 findings). Each row says what Trello 
 | 23 | Workspaces / members / settings / invite | fixed | fix/boards-home | Multiple Workspaces; members with admin/member roles; invite by email (existing accounts join at once, others see the invitation when they sign up with that address); invite links; settings (name, type, short name, website, description, visibility); leave and delete. Exception: no invitation email is sent, because the project has no email service; the invite link covers that. |
 | 24 | Global search | fixed | fix/search-notifications | Header search box with live results (boards by title, cards by title, description, comments and checklist items) and a full search page with Trello-style operators: @me / @username, #label, board:, list:, due:day/week/month/overdue, has:attachments/description/cover/members/checklist, is:archived/open/starred/complete, "exact phrases". |
 | 25 | Notifications | fixed | fix/search-notifications | Bell with unread count: someone added you to a card or board or Workspace, @mentions (including @card and @board), comments and moves on cards/lists you watch, and due-date reminders for card members and watchers at the reminder time. Only-unread filter, mark one or all read, click to open the card. Exception: no email notifications (no email service in the project). |
-| 26 | Profile menu / settings | open | | |
-| 27 | Keyboard shortcuts | open | | |
-| 28 | Persistence | open | | |
-| 29 | Sign out / in | open | | |
+| 26 | Profile menu / settings | fixed | fix/account-chrome | Avatar menu: account (name, email), Profile and visibility, Activity, Cards, Settings, Theme (Light / Dark / Match browser), Shortcuts, Log out (guests get Sign up / Log in). Pages: profile (photo upload or colour, name, username for @mentions, bio), activity, cards assigned to you, settings (theme, colour-blind label patterns, keyboard shortcuts on/off). Full dark theme. |
+| 27 | Keyboard shortcuts | fixed | fix/account-chrome | ? opens the shortcuts panel (also the ? button in the header). Implemented: ? / B F X Q W, arrows and J/K to select, Enter, N, E, T, Space, 1–9, C (with Undo toast), S, V, , and . (also < >), R (repeat), Z and Shift+Z (undo/redo), Esc, Ctrl/⌘+Enter. Can be turned off in Settings. |
+| 28 | Persistence | fixed | fix/account-chrome | Re-verified on the new model: every edit is saved server-side as it happens ("Saving… / Saved"), survives reloads, reaches collaborators within ~4 s without a reload, and concurrent edits merge instead of overwriting. |
+| 29 | Sign out / in | fixed | fix/account-chrome | Log out from the account menu returns to the logged-out site; signing back in shows the same boards and cards (verified with the demo account; Firebase sign-in uses the same session path). |
 | 30 | Console errors | open | | |
 | 31 | Mobile 390px | open | | |

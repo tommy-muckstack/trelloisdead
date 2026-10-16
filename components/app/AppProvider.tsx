@@ -33,7 +33,7 @@ export function AppProvider({ initial, session, children }: { initial: MePayload
     return j as T;
   }, []);
   const refresh = useCallback(async () => { try { setMe(await call<MePayload>("GET", "/api/me")); } catch { /* keep what we have */ } }, [call]);
-  const patchMe = useCallback(async (p: Record<string, unknown>) => { try { const { user } = await call<{ user: UserDoc }>("PATCH", "/api/me", p); setMe(m => ({ ...m, user })); } catch (e) { toast((e as Error).message, { kind: "error" }); } }, [call, toast]);
+  const patchMe = useCallback(async (p: Record<string, unknown>) => { if (p.settings) setMe(m => ({ ...m, user: { ...m.user, settings: { ...m.user.settings, ...(p.settings as object) } } })); try { const { user } = await call<{ user: UserDoc }>("PATCH", "/api/me", p); setMe(m => ({ ...m, user })); } catch (e) { toast((e as Error).message, { kind: "error" }); } }, [call, toast]);
   const setBoardSummary = useCallback((b: BoardSummary) => setMe(m => ({ ...m, boards: m.boards.some(x => x.id === b.id) ? m.boards.map(x => (x.id === b.id ? { ...x, ...b, role: b.role ?? x.role } : x)) : [b, ...m.boards] })), []);
   const setWorkspace = useCallback((w: Workspace) => setMe(m => ({ ...m, workspaces: m.workspaces.some(x => x.id === w.id) ? m.workspaces.map(x => (x.id === w.id ? w : x)) : [...m.workspaces, w] })), []);
   const requireAccount = useCallback((why: string) => { if (!session.guest) return true; setPrompt(why); return false; }, [session.guest]);
