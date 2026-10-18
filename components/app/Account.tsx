@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { User, Activity, CreditCard, Settings, Sun, Moon, Monitor, Keyboard, LogOut, LogIn, HelpCircle } from "lucide-react";
 import { ago, bgCss, fmtText, AVATAR_COLORS, type Theme } from "@/lib/model";
 import { BP } from "@/lib/basepath";
+import { trackNow, resetIdentity, EVENTS } from "@/lib/analytics";
 import { useApp } from "@/components/app/AppProvider";
 import { Avatar, PopHead, useDismiss } from "@/components/app/ui";
 import { DueBadge, type MyCard } from "@/components/app/HomePage";
@@ -32,7 +33,7 @@ export function AccountMenu() {
         <hr className="tr-sep" />
         <a className="tr-mi" href={`${BP}/help`}><HelpCircle size={16} />Help</a>
         <button className="tr-mi" onClick={() => { close(); openShortcuts(); }}><Keyboard size={16} />Shortcuts</button>
-        {!app.session.guest && <><hr className="tr-sep" /><form method="post" action={`${BP}/api/session/logout`} style={{ margin: 0 }}><button className="tr-mi"><LogOut size={16} />Log out</button></form></>}
+        {!app.session.guest && <><hr className="tr-sep" /><form method="post" action={`${BP}/api/session/logout`} style={{ margin: 0 }} onSubmit={e => { e.preventDefault(); const f = e.currentTarget; void trackNow(EVENTS.app_signed_out).then(() => { resetIdentity(); f.submit(); }); }}><button className="tr-mi"><LogOut size={16} />Log out</button></form></>}
       </>}
     </div>}
   </div>;

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { FirebaseClientConfig } from "@/lib/isdead-auth/config";
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, resetPassword, authErrorMessage } from "@/lib/isdead-auth/client";
 import { BP } from "@/lib/basepath";
+import { trackNow, EVENTS } from "@/lib/analytics";
 import { Mark } from "@/components/Mark";
 import "./trlogin.css";
 
@@ -22,8 +23,8 @@ export function TrLogin({ config, demo, to, mode, email: email0 = "" }: { config
     if (mode === "forgot") { if (need()) void run(async () => { await resetPassword(config!, email); setStep("sent"); setCool(30); }); return; }
     if (step === "email") { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setErr("Enter a valid email address."); return; } setStep("details"); return; }
     if (!need()) return;
-    if (mode === "login") void run(async () => { await signInWithEmail(config!, session, email, password); window.location.assign(to); });
-    else void run(async () => { await signUpWithEmail(config!, session, email, password, name || undefined); window.location.assign(to); });
+    if (mode === "login") void run(async () => { await signInWithEmail(config!, session, email, password); await trackNow(EVENTS.app_signed_in, { method: "password" }); window.location.assign(to); });
+    else void run(async () => { await signUpWithEmail(config!, session, email, password, name || undefined); await trackNow(EVENTS.app_signed_up, { method: "password" }); window.location.assign(to); });
   };
   const title = mode === "forgot" ? (step === "sent" ? "Check your inbox" : "Can't log in?") : mode === "signup" ? "Sign up to continue" : "Log in to continue";
   return <main className="trl">
@@ -48,7 +49,7 @@ export function TrLogin({ config, demo, to, mode, email: email0 = "" }: { config
       </form>}
       {err && <p role="alert" className="err">{err}</p>}{note && <p role="status" className="nt">{note}</p>}
       {mode !== "forgot" && <><p className="ow">Or continue with:</p>
-        <button type="button" className="pv" disabled={busy} onClick={() => { if (need()) void run(async () => { await signInWithGoogle(config!, session); window.location.assign(to); }); }}>{G}Google</button></>}
+        <button type="button" className="pv" disabled={busy} onClick={() => { if (need()) void run(async () => { await signInWithGoogle(config!, session); await trackNow(EVENTS.app_signed_in, { method: "google" }); window.location.assign(to); }); }}>{G}Google</button></>}
       {step !== "sent" && <p className="lk">{mode === "signup" ? <Link href={`/login${q}`}>Already have an account? Log in</Link> : mode === "forgot" ? <Link href={`/login${q}`}>Return to log in</Link> : <><Link href={`/forgot-password${q}`}>Can&apos;t log in?</Link> &nbsp;•&nbsp; <Link href={`/signup${q}`}>Create an account</Link></>}</p>}
       <hr />
       <p className="oa"><Link href="/app">Continue without an account</Link>: your boards are saved as a guest and move into your account when you sign up.</p>

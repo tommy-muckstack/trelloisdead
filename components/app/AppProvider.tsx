@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { BP } from "@/lib/basepath";
+import { identify } from "@/lib/analytics";
 import type { BoardSummary, UserDoc, Workspace } from "@/lib/model";
 import type { MePayload, PendingInvite } from "@/lib/server/data";
 
@@ -46,6 +47,8 @@ export function AppProvider({ initial, session, children }: { initial: MePayload
   // refresh notifications and board tiles when the tab regains focus, and every minute while it's open
   useEffect(() => { const h = () => { if (document.visibilityState === "visible") void refresh(); }; document.addEventListener("visibilitychange", h); const t = setInterval(h, 60_000); return () => { document.removeEventListener("visibilitychange", h); clearInterval(t); }; }, [refresh]);
   useEffect(() => { setPrompt(null); }, [path]);
+  // analytics identity: Firebase accounts by uid; guests and the demo account are never identified
+  useEffect(() => { identify(session.id, session.guest ? "guest" : session.demo ? "demo" : "firebase"); }, [session.id, session.guest, session.demo]);
   const value = useMemo<Ctx>(() => ({ session, user: me.user, workspaces: me.workspaces, boards: me.boards, invites: me.invites, refresh, patchMe, setBoardSummary, setWorkspace, call, toast, requireAccount, starred, toggleStar, theme }),
     [session, me, refresh, patchMe, setBoardSummary, setWorkspace, call, toast, requireAccount, starred, toggleStar, theme]);
   return <C.Provider value={value}>

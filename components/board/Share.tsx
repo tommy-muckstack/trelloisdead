@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Link2, UserPlus } from "lucide-react";
 import type { Board, BoardMember, Role } from "@/lib/model";
 import { BP } from "@/lib/basepath";
+import { track, EVENTS } from "@/lib/analytics";
 import { useApp } from "@/components/app/AppProvider";
 import { useBoard } from "@/components/app/BoardProvider";
 import { Avatar, PopHead, copyText, useDismiss } from "@/components/app/ui";
@@ -19,10 +20,10 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
   const notOnBoard = (ws?.members ?? []).filter(m => !board.members.some(b => b.id === m.id));
   const invite = async (address: string, as: Role) => {
     if (!app.requireAccount("Sharing a board needs an account, so the people you invite know who it's from.")) return; setBusy(true);
-    try { const res = await app.call<{ added: boolean; board: Board }>("POST", `/api/b/${board.id}/members`, { email: address, role: as }); if (res.added) replace(res.board); app.toast(res.added ? `${address} was added to the board.` : `Invitation saved. ${address} will see it when they sign up with that email. Share the board link to nudge them.`); setEmail(""); }
+    try { const res = await app.call<{ added: boolean; board: Board }>("POST", `/api/b/${board.id}/members`, { email: address, role: as }); track(EVENTS.app_shared, { object: "board", method: "invite", role: as }); if (res.added) replace(res.board); app.toast(res.added ? `${address} was added to the board.` : `Invitation saved. ${address} will see it when they sign up with that email. Share the board link to nudge them.`); setEmail(""); }
     catch (e) { if (!(e as { signIn?: boolean }).signIn) app.toast((e as Error).message, { kind: "error" }); } finally { setBusy(false); }
   };
-  const makeLink = async () => { if (!app.requireAccount("Share links need an account.")) return; try { const { token } = await app.call<{ token: string }>("POST", `/api/b/${board.id}/link`, {}); setToken(token); await copyText(`${window.location.origin}${BP}/app/join/${token}`); app.toast("Link copied to the clipboard."); } catch (e) { if (!(e as { signIn?: boolean }).signIn) app.toast((e as Error).message, { kind: "error" }); } };
+  const makeLink = async () => { if (!app.requireAccount("Share links need an account.")) return; try { const { token } = await app.call<{ token: string }>("POST", `/api/b/${board.id}/link`, {}); track(EVENTS.app_shared, { object: "board", method: "link" }); setToken(token); await copyText(`${window.location.origin}${BP}/app/join/${token}`); app.toast("Link copied to the clipboard."); } catch (e) { if (!(e as { signIn?: boolean }).signIn) app.toast((e as Error).message, { kind: "error" }); } };
   const killLink = async () => { try { await app.call("DELETE", `/api/b/${board.id}/link`); setToken(null); app.toast("Share link deleted. The old link no longer works."); } catch (e) { app.toast((e as Error).message, { kind: "error" }); } };
   const leave = () => { dispatch({ t: "member.remove", userId: me }, { undoable: false }); onClose(); setTimeout(() => router.push("/app"), 400); };
   return <div className="tr-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div className="tr-dialog wide" role="dialog" aria-modal="true" aria-labelledby="share-h" data-testid="share-dialog">
