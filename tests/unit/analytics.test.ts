@@ -18,3 +18,21 @@ describe("board action events", () => {
     expect(actionEvent({ t: "card.move", cardId: "c1", listId: "l2", index: 0 }, board)?.[0]).toBe("app_card_moved");
   });
 });
+import { scrub } from "@/lib/analytics/posthog";
+describe("analytics privacy", () => {
+  it("strips query strings, hashes and titles", () => {
+    const e = scrub({ event: "$pageview", properties: { $current_url: "https://yourappisdead.com/x/app?url=https://secret.example#frag", $referrer: "https://google.com/search?q=me", title: "My private doc" } });
+    expect(e.properties.$current_url).toBe("https://yourappisdead.com/x/app"); expect(e.properties.$referrer).toBe("https://google.com/search"); expect("title" in e.properties).toBe(false);
+  });
+  it("masks join tokens, board and workspace ids", () => {
+    const e = scrub({ event: "$pageview", properties: { $current_url: "https://yourappisdead.com/trelloisdead/app/join/tok_SECRET123", $pathname: "/trelloisdead/app/b/b_abc/settings?card=c_1", $referrer: "https://yourappisdead.com/trelloisdead/app/w/w_9/members" }, $set: { $current_url: "https://yourappisdead.com/trelloisdead/app/join/tok_SECRET123" } });
+    expect(e.properties.$current_url).toBe("https://yourappisdead.com/trelloisdead/app/join/:id"); expect(e.properties.$pathname).toBe("/trelloisdead/app/b/:id/settings");
+    expect(e.properties.$referrer).toBe("https://yourappisdead.com/trelloisdead/app/w/:id/members"); expect(e.$set.$current_url).not.toContain("SECRET");
+  });
+  it("cleans every URL-like key, including session entry and $set / $set_once", () => {
+    const u = "https://yourappisdead.com/trelloisdead/app/join/tok_S?ref=x#y";
+    const e = scrub({ event: "$pageview", properties: { $session_entry_url: u, $session_entry_referrer: u, $session_entry_pathname: "/trelloisdead/app?q=1", custom_url: u, $set: { $initial_current_url: u }, $set_once: { $initial_referrer: u } }, $set: { $current_url: u }, $set_once: { $initial_pathname: "/a?b" } });
+    const all = JSON.stringify(e); expect(all).not.toMatch(/[?#]/); expect(all).not.toContain("tok_S");
+    expect(e.properties.$session_entry_url).toBe("https://yourappisdead.com/trelloisdead/app/join/:id");
+  });
+});

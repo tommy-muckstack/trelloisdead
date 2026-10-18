@@ -9,6 +9,13 @@ One PostHog project (US cloud, project **666931**) collects the hub and every Is
 - `<Analytics />` is mounted once in `app/layout.tsx`: it boots the client and sends `$pageview` per route change. Autocapture and session replay are off.
 - posthog-js drops automated browsers. In dev, `localStorage.isdead_ph_debug = "1"` turns on verbose logs and lets Playwright capture (production keeps the bot filter).
 
+## Privacy (`scrub`, the client's `before_send`)
+- Every URL-like property (any key ending in `url`, `referrer` or `pathname`: `$current_url`, `$referrer`, `$pathname`,
+  `$session_entry_url`, `$initial_*`, ...) keeps only origin + path, in the event and in `$set` / `$set_once`. Query strings
+  and hashes are dropped, so `?card=<id>` and prefilled values never leave the browser.
+- Path ids are masked to `:id`: `/app/join/<token>` (join tokens work like passwords), `/app/b/<id>`, `/app/w/<id>`.
+- The page `title` is dropped. Heatmaps and performance capture are off; `$pageview` uses PostHog's own (scrubbed) URL.
+
 ## Super properties
 | property | value | meaning |
 | --- | --- | --- |
