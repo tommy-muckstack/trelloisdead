@@ -7,12 +7,13 @@ import { LayoutTemplate, Search } from "lucide-react";
 import { bgCss, labelColor, type Board } from "@/lib/model";
 import { CATEGORIES, TEMPLATES, type Template } from "@/lib/templates";
 import { useApp } from "@/components/app/AppProvider";
+import { track, EVENTS } from "@/lib/analytics";
 import { Sidebar } from "@/components/app/Sidebar";
 
 function Preview({ t, onClose }: { t: Template; onClose: () => void }) {
   const app = useApp(); const router = useRouter(); const [title, setTitle] = useState(t.title); const [ws, setWs] = useState(app.workspaces[0]?.id ?? ""); const [busy, setBusy] = useState(false);
   const use = async (e: React.FormEvent) => { e.preventDefault(); setBusy(true);
-    try { const { board } = await app.call<{ board: Board }>("POST", "/api/boards", { title, template: t.id, workspaceId: ws }); await app.refresh(); router.push(`/app/b/${board.id}`); }
+    try { const { board } = await app.call<{ board: Board }>("POST", "/api/boards", { title, template: t.id, workspaceId: ws }); track(EVENTS.app_board_created, { template: true }); await app.refresh(); router.push(`/app/b/${board.id}`); }
     catch (err) { app.toast((err as Error).message, { kind: "error" }); setBusy(false); } };
   return <div className="tr-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><div className="tr-dialog wide" role="dialog" aria-modal="true" aria-labelledby="tp-h" style={{ maxWidth: 960 }}>
     <button className="tr-x" aria-label="Close" onClick={onClose}>×</button>

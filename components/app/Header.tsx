@@ -7,6 +7,7 @@ import { ChevronDown, Star, LayoutTemplate, Users, SquareKanban, Menu, Plus } fr
 import { bgCss, type Workspace } from "@/lib/model";
 import { TEMPLATES } from "@/lib/templates";
 import { useApp } from "@/components/app/AppProvider";
+import { track, EVENTS } from "@/lib/analytics";
 import { Dropdown, PopHead, WsIcon } from "@/components/app/ui";
 import { CreateBoardPanel } from "@/components/app/CreateBoard";
 import { HeaderRight } from "@/components/app/HeaderRight";
@@ -37,7 +38,7 @@ export function TemplatesMenu({ close }: { close: () => void }) {
 export function CreateWorkspaceDialog({ onClose }: { onClose: () => void }) {
   const app = useApp(); const router = useRouter(); const [name, setName] = useState(""); const [type, setType] = useState(""); const [desc, setDesc] = useState(""); const [busy, setBusy] = useState(false);
   const go = async (e: React.FormEvent) => { e.preventDefault(); if (!name.trim()) return; setBusy(true);
-    try { const { workspace } = await app.call<{ workspace: Workspace }>("POST", "/api/workspaces", { name, type, desc }); await app.refresh(); onClose(); router.push(`/app/w/${workspace.id}`); }
+    try { const { workspace } = await app.call<{ workspace: Workspace }>("POST", "/api/workspaces", { name, type, desc }); track(EVENTS.app_workspace_created, { workspace_type: type || "none" }); await app.refresh(); onClose(); router.push(`/app/w/${workspace.id}`); }
     catch (err) { app.toast((err as Error).message, { kind: "error" }); setBusy(false); } };
   return <div className="tr-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}><form className="tr-dialog" role="dialog" aria-modal="true" aria-labelledby="cw-h" onSubmit={go}>
     <button type="button" className="tr-x" aria-label="Close" onClick={onClose}>×</button>

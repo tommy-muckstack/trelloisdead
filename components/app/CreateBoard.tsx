@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Lock, Users, Globe, Upload, MoreHorizontal } from "lucide-react";
 import { COLORS, GRADIENTS, PHOTOS, bgCss, photoCredit, type Board, type Visibility } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
+import { track, EVENTS } from "@/lib/analytics";
 import { PopHead } from "@/components/app/ui";
 
 export const VIS: { v: Visibility; label: string; desc: string; Icon: typeof Lock }[] = [
@@ -47,7 +48,7 @@ export function CreateBoardPanel({ onClose, workspaceId, onBack }: { onClose: ()
   const [title, setTitle] = useState(""); const [bg, setBg] = useState(PHOTOS[0]!.id); const [ws, setWs] = useState(workspaceId ?? app.workspaces[0]?.id ?? ""); const [vis, setVis] = useState<Visibility>("workspace"); const [busy, setBusy] = useState(false); const [touched, setTouched] = useState(false);
   const create = async (e: React.FormEvent) => {
     e.preventDefault(); setTouched(true); if (!title.trim() || !ws) return; setBusy(true);
-    try { const { board } = await app.call<{ board: Board }>("POST", "/api/boards", { title, bg, workspaceId: ws, visibility: vis }); await app.refresh(); onClose(); router.push(`/app/b/${board.id}`); }
+    try { const { board } = await app.call<{ board: Board }>("POST", "/api/boards", { title, bg, workspaceId: ws, visibility: vis }); track(EVENTS.app_board_created, { template: false, visibility: vis }); await app.refresh(); onClose(); router.push(`/app/b/${board.id}`); }
     catch (err) { app.toast((err as Error).message, { kind: "error" }); setBusy(false); }
   };
   return <form onSubmit={create} data-testid="create-board">

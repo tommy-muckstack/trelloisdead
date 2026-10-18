@@ -6,6 +6,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { applyAction, inverse, type Action, type ActionBody } from "@/lib/actions";
 import { summary, uid, type Board, type Role } from "@/lib/model";
 import { useApp } from "@/components/app/AppProvider";
+import { track } from "@/lib/analytics";
+import { actionEvent } from "@/lib/analytics/boardEvents";
 
 type Save = "saved" | "saving" | "error" | "offline";
 type Ctx = {
@@ -46,6 +48,7 @@ export function BoardProvider({ initial, role: role0, via: via0, children }: { i
   const dispatch = useCallback((body: ActionBody, o: { undoable?: boolean; redo?: boolean } = {}) => {
     const a = stamp(body);
     if (o.undoable !== false) { const inv = inverse(boardRef.current, a, ""); if (inv) { undoRef.current = [...undoRef.current.slice(-49), inv]; if (!o.redo) redoRef.current = []; bump(x => x + 1); } }
+    const ev = actionEvent(body, boardRef.current); if (ev) track(ev[0], ev[1]);
     setLast(body); enqueue(a, 120);
   }, [stamp, enqueue]);
   const undo = useCallback(() => { const last = undoRef.current.pop(); if (!last) return; const a = stamp(last); const back = inverse(boardRef.current, a, ""); if (back) redoRef.current = [...redoRef.current, back]; bump(x => x + 1); enqueue(a, 60); }, [stamp, enqueue]);
